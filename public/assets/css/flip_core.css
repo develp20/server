@@ -1,0 +1,122 @@
+body {
+    background-color: #F7F9FA;
+}
+
+img.f-logo {
+    height: 100px;
+}
+
+div.f-bg {
+    background-color: #F7F9FA;
+
+    position: fixed;
+    left: 0px;
+    top: 0px;
+
+    height: 100%;
+    width: 100%;   
+}
+
+div.f-wrapper {
+    background-color: #F7F9FA;
+
+    position: absolute;
+    left: 0px;
+    top: 0px;
+
+    height: 100%;
+    width: 100%;
+
+    text-align: center;
+}
+
+div.f-loginPanel {
+    margin: 0 auto;
+    text-align: center;
+
+    width: 30%;
+    height: fit-content;
+    margin-top: 30px;min-width: 380px;
+}
+
+div.f-loginPanel img.f-logo {
+    margin-bottom: 20px;
+}
+
+img.f-logoFix {
+    margin-bottom: 0px !important;
+}
+
+button.f-loginButton, button.f-fullsizeButton {
+    width: 100%
+}
+
+div.f-createInfoCard, div.f-createUserCard, div.f-createMinimalCard {
+    display: none;
+}
+
+p.f-loginTooltip {
+    margin-top: -5px;
+}
+
+p.f-emailHelp, p.f-passwordHelp, p.f-loginHelp, p.f-userUsernameInputHelp {
+    display: none;
+}
+
+div.f-columnArea {
+    padding: 30px;
+}
+
+div.f-menuCard {
+    text-align: left;
+    padding-left: 15px;
+}
+
+div.f-card {
+    padding-top: 15px;
+    /* padding-bottom: 15px; */
+    margin-bottom: 20px;
+
+    /* padding-left: 15px; */
+
+    text-align: left;
+}
+
+div.f-cardInner {
+    padding-bottom: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+div.f-center {
+    text-align: center;
+    padding-left: 0px
+}
+
+/* could fuck up a burrito rn */
+
+button.f-deleteButton {
+    position: absolute;
+    right: 15px;
+}
+
+button.f-deleteButton-thin {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    margin: 12.5px;
+}
+
+@media (max-width: 700px) {
+    body {
+        overflow-x: hidden
+    }
+
+    div.box {
+        width: calc(100% - 20px);
+        border-radius: 0;
+
+        margin-top: 10px;
+    }
+}
+

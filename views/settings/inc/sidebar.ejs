@@ -1,0 +1,27 @@
+    <div class="column f-defaultColumn">
+        <div class="card f-card f-center">
+            <div class="f-cardInner" style="padding-left: 0px;">
+                <img src="/assets/img/flip_logoDark.png" alt="flip" class="f-logo f-logoFix">
+            </div>
+        </div>
+        <div class="card f-card f-menuCard">
+            <aside class="menu">
+                <p class="menu-label">General</p>
+                <ul class="menu-list">
+                    <li><a href="/admin" <% if(sidebar == "home") { %> class="is-active" <% } %></a>Home</a></li>
+                    <li><a href="/admin/explore" <% if(sidebar == "explore") { %> class="is-active" <% } %></a>Explore</a></li>
+                    <li><a href="/admin/support" <% if(sidebar == "support") { %> class="is-active" <% } %></a>Support</a></li>
+                </ul>
+                <p class="menu-label">More Options</p>
+                <ul class="menu-list">
+                    <li><a href="/admin/logout">Logout</a></li>
+                </ul>
+                <br>
+            </aside>
+        </div>
+        <div class="card f-card f-center">
+            <div class="f-cardInner">
+                <p>Made by William (<a href="https://twitter.com/williamsthing">@williamsthing</a>) in 2018 for <a href="/">flip</a>.</p>
+            </div>
+        </div>
+    </div>

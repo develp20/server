@@ -1,0 +1,7 @@
+time.f-time {
+    opacity: 0.75;
+}
+
+input.f-cardTitleInput, textarea.f-cardBodyinput, input.f-userUsernameInput {
+    margin-bottom: 10px;
+}

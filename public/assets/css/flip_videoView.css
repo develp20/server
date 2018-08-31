@@ -1,0 +1,8 @@
+video.fl-player {
+	width: 480px;
+	height: 640px;
+
+	border-radius: 15px;
+
+	position: absolute;
+}

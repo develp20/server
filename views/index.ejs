@@ -1,0 +1,16 @@
+<%- include("./inc/header.ejs") %>
+        <div class="fl-bgGradient"></div>
+        <div class="fl-center">
+            <a href="/download" target="_blank">
+                <img class="fl-logo" src="/assets/img/flip_logo.png" alt="flip.wtf" />
+            </a>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+        <script>
+            var socket = io();
+
+            socket.on("like", function(data) {
+                console.log(data.postID);
+            })
+        </script>
+<%- include("./inc/footer.ejs") %>
