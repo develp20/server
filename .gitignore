@@ -71,3 +71,8 @@ typings/
 
 # Serverless directories
 .serverless
+
+# Custom
+.DS_Store
+videos/*
+thumbnails/*
