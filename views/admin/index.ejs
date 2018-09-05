@@ -10,6 +10,14 @@
                 </div>
                 <div class="f-newUsers"></div>
             </div>
+            <div class="column">
+                <div class="card f-card">
+                    <div class="f-cardInner">
+                        <h3 class="title is-3">Latest Posts </h3>
+                    </div>
+                </div>
+                <div class="f-newPosts"></div>
+            </div>
         </div>
     </div>
     <style>
@@ -20,6 +28,7 @@
     <script>
         $(document).ready(function(){
             f.users.load();
+            f.posts.load();
         })
     </script>
 <%- include("./inc/footer.ejs") %>

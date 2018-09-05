@@ -4,6 +4,10 @@ var router = express.Router();
 let fs = require("fs");
 let dbConfig = require("../config.json");
 
+let timedOutUsers = [
+    // ""
+]
+
 let mongojs = require("mongojs")
 let db = mongojs(dbConfig.mDB, [ "users", "posts", "reservations", "featured", "reports", "hashtags", "bookmarks", "notifications" ])
 
@@ -762,7 +766,14 @@ let flip = {
                 }, function(err0, docs0) {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            let selectedGradientIndex = flip.tools.indexGradient(gradients, docs0[0].profile.gradient)
+                            let currentGradient = docs0[0].profile.gradient;
+                            let availableGradients = gradients;
+                            let selectedGradientIndex = flip.tools.indexGradient(gradients, currentGradient)
+
+                            if(typeof selectedGradientIndex === "undefined") {
+                                availableGradients.splice(0, 0, docs0[0].profile.gradient)
+                                selectedGradientIndex = 0
+                            }
 
                             callback({
                                 response: "OK",
@@ -772,7 +783,7 @@ let flip = {
                                     gradients: {
                                         type: "gradient",
                                         selectedIndex: selectedGradientIndex,
-                                        gradients: gradients
+                                        gradients: availableGradients
                                     },
                                     connectedServices: docs0[0].services.connected
                                 }
@@ -889,12 +900,20 @@ let flip = {
                                                     //     docs0[0].profile.profileImg = "https://api.flip.wtf/v2/user/geopic/" + docs0[0].info.username + ".png"
                                                     // }
 
-                                                    docs0[0].profile.posts = docs1;
-                                                    docs0[0].profile.followers = docs0[0].profile.followers.length;
-                                                    docs0[0].profile.following = docs0[0].profile.following.length;
-                                                    delete docs0[0].profile.blocked;
+                                                    safeData.profile = {
+                                                        name: docs0[0].profile.name,
+                                                        bio: docs0[0].profile.bio,
+                                                        profileImg: docs0[0].profile.profileImg,
+                                                        followers: docs0[0].profile.followers.length,
+                                                        following: docs0[0].profile.following.length,
+                                                        posts: docs1,
+                                                        gradient: docs0[0].profile.gradient,
+                                                        verified: (docs0[0].profile.badges.indexOf("FL_VERIFIED") > -1)
+                                                    }
 
-                                                    safeData.profile = docs0[0].profile;
+                                                    if(clientID != requesterClientID) {
+                                                        delete safeData.info.meta.hasUnreadNotifications;
+                                                    }
 
                                                     callback({
                                                         response: "OK",
@@ -1040,12 +1059,8 @@ let flip = {
                                                         name: doc.profile.name,
                                                         profileImg: doc.profile.profileImg,
                                                         gradient: doc.profile.gradient,
-                                                        verified: doc.profile.verified
+                                                        verified: (doc.profile.badges.indexOf("FL_VERIFIED") > -1)
                                                     };
-
-                                                    // if(profile.profileImg == "https://flip.wtf/assets/img/flip_defaultUserIcon.png") {
-                                                    //     profile.profileImg = "https://api.flip.wtf/v2/user/geopic/" + docs0[0].info.username + ".png"
-                                                    // }
 
                                                     delete doc.info.deviceToken;
 
@@ -1386,13 +1401,17 @@ let flip = {
 				if(!err) {
 					if(docs.length > 0) {
 						if(bcrypt.compareSync(password, docs[0].security.password)) {
-							callback({
-								response: "OK",
-								data: {
-									clientID: docs[0].info.clientID,
-									sessionID: docs[0].security.sessionID
-								}
-							})
+                            if(timedOutUsers.indexOf(docs[0].info.clientID) == -1) {
+                                callback({
+                                    response: "OK",
+                                    data: {
+                                        clientID: docs[0].info.clientID,
+                                        sessionID: docs[0].security.sessionID
+                                    }
+                                })
+                            } else {
+                                callback(flip.tools.res.TEMP_SUSPENDED)                                
+                            }
 						} else {
 							callback(flip.tools.res.LOGIN_ERR);
 						}
@@ -1578,14 +1597,6 @@ let flip = {
 				}, {
 					$addToSet: {
 						"profile.followers": clientID
-					}
-				}, function(err0, docs0) {
-					if(!err0) {
-						flip.user.get.raw(clientID, function(data0) {
-							if(data0.response == "OK") {
-								flip.notification.send("@" + data0.data.info.username + " just followed you", otherClientID);
-							}
-						});
 					}
 				});
 
@@ -1875,7 +1886,7 @@ let flip = {
                                                             username: uDocs[0].info.username,
                                                             profileImg: uDocs[0].profile.profileImg,
                                                             gradient: uDocs[0].profile.gradient,
-                                                            verified: uDocs[0].profile.verified
+                                                            verified: (uDocs[0].profile.badges.indexOf("FL_VERIFIED") > -1)
                                                         }
 
                                                         // v1 translation
@@ -2097,7 +2108,7 @@ let flip = {
                                             username: uDocs[0].info.username,
                                             profileImg: uDocs[0].profile.profileImg,
                                             gradient: uDocs[0].profile.gradient,
-                                            verified: uDocs[0].profile.verified
+                                            verified: (uDocs[0].profile.badges.indexOf("FL_VERIFIED") > -1)
                                         }
 
                                         dataCount--;
@@ -2197,7 +2208,7 @@ let flip = {
                         for(i = 0; i < oldWords.length; i++) {
                             if(oldWords[i].charAt(0) == "#") {
                                 if(caption.indexOf(oldWords[i]) == -1) {
-                                    if(flip.tools.validate.hashtag(words[i])) {
+                                    if(flip.tools.validate.hashtag(oldWords[i])) {
                                         flip.hashtag.remove(oldWords[i].replace("#", ""));
                                     }
                                 }
@@ -2595,7 +2606,7 @@ let flip = {
                                                 username: data0.data.info.username,
                                                 profileImg: data0.data.profile.profileImg,
                                                 gradient: data0.data.profile.gradient,
-                                                verified: data0.data.profile.verified
+                                                verified: (data0.data.profile.badges.indexOf("FL_VERIFIED") > -1)
                                             }
 
                                             doc.info.notificationAgo = flip.tools.gen.tDef(moment(doc.info.notificationAt).local().fromNow())
@@ -2921,6 +2932,11 @@ let flip = {
                 formattedTitle: "Success",
                 formattedResponse: "The request was recieved and processed successfully."
             },
+            TEMP_SUSPENDED: {
+                response: "TEMP_SUSPENDED",
+                formattedTitle: "Temporarily Suspended",
+                formattedDesc: "Your account has been temporarily suspended.\n\nIf you think this has been done in error, please contact support@flip.wtf."
+            },
 			ERR: {
 				response: "ERR",
 				formattedTitle: "An Error Occured",
@@ -3003,7 +3019,7 @@ let flip = {
                 }
 
                 if(i == arrayMaster.length) {
-                    return 0
+                    return -1
                 }
             }
         },
@@ -3161,7 +3177,10 @@ let flip = {
 					info: {
 						clientID: flip.tools.gen.clientID(),
 						username: username,
-						joinedAt: Date.now()
+                        joinedAt: Date.now(),
+                        meta: {
+                            unreadNotifications: 0
+                        }
 					},
 					security: {
                         email: email,
@@ -3172,13 +3191,29 @@ let flip = {
 						bio: "This user has no bio.",
                         profileImg: "https://flip.wtf/assets/img/flip_defaultUserIcon.png",
                         gradient: flip.tools.gen.randomGradient(),
-						verified: false,
+						badges: [],
 						followers: [],
                         following: ["gcVKSxFv2hk3o8V"],
                         blocked: []
                     },
+                    session: {
+                        isLoggedIn: false,
+                        lastLoggedOutAt: 0,
+                        lastOpenedAppAt: Date.now(),
+                        UUID: "",
+                        lastUsedVersion: ""
+                    },
                     services: {
                         connected: []
+                    },
+                    settings: {
+                        notification: {
+                            explore: true,
+                            mention: true,
+                            comment: true,
+                            like: true,
+                            follow: true
+                        }
                     }
 				}
             },
@@ -3264,9 +3299,10 @@ let flip = {
 
     //     db.users.update({}, {
     //         $set: {
-    //             "services": {
-    //                 "connected": []
-    //             }
+    //             "profile.badges": []
+    //         },
+    //         $unset: {
+    //             "profile.verified": ""
     //         }
     //     }, {
     //         multi: true

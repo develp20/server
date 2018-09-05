@@ -25,6 +25,7 @@
     "moment": "^2.22.2",
     "mongojs": "^2.6.0",
     "morgan": "~1.9.0",
+    "node-media-server": "^1.4.3",
     "short-number": "^1.0.6",
     "socket.io": "^2.1.1",
     "svg2img": "^0.4.0",
