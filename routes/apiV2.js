@@ -3213,6 +3213,10 @@ let flip = {
                             comment: true,
                             like: true,
                             follow: true
+                        },
+                        discovery: {
+                            letFriendsFindMe: true,
+                            allowFeatureOnExplore: true
                         }
                     }
 				}

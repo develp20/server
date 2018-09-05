@@ -9,6 +9,7 @@ let prohibitedUsers = [
     "8cUybaUC0ZBPLv5" //william
 ];
 
+// TIMED OUT USERS
 let timedOutUsers = [];
 
 // FS
@@ -71,11 +72,11 @@ let gradients = [
     [
         "#232526",
         "#414345"
-    ],
-    [
-        "#243247",
-        "#000000"
     ]
+    // [
+    //     "#243247",
+    //     "#000000"
+    // ]
 ]
 
 // APPLE PUSH NOTIFICATION SERVICE
@@ -143,7 +144,7 @@ let flip = {
                                         }
                                     }
 
-                                    console.log(data0.data.info.username + " just made a request")
+                                    console.log(data0.data.info.username.toLowerCase() + " just made a request")
                                     
                                     callback({
                                         response: "OK",
@@ -837,6 +838,9 @@ let flip = {
                         $set: {
                             "session.isLoggedIn": false,
                             "session.lastLoggedInAt": Date.now()
+                        },
+                        $unset: {
+                            "info.deviceToken": ""
                         }
                     }, function(err0, docs0) {
                         if(!err0) {
@@ -1035,11 +1039,11 @@ let flip = {
                     if(!err0) {
                         if(docs0.length > 0) {
                             let currentGradient = docs0[0].profile.gradient;
-                            let availableGradients = gradients;
-                            let selectedGradientIndex = flip.tools.indexGradient(gradients, currentGradient)
+                            var availableGradients = gradients;
+                            var selectedGradientIndex = flip.tools.indexGradient(availableGradients, currentGradient)
 
                             if(typeof selectedGradientIndex === "undefined") {
-                                availableGradients.splice(0, 0, docs0[0].profile.gradient)
+                                // availableGradients.splice(0, 0, docs0[0].profile.gradient)
                                 selectedGradientIndex = 0
                             }
 
@@ -1798,12 +1802,7 @@ let flip = {
                                     "info.clientID": "gcVKSxFv2hk3o8V"
                                 }, {
                                     $addToSet: {
-                                        "profile.followers": {
-                                            $each: [
-                                                userObj.info.clientID
-                                            ],
-                                            $position: 0
-                                        }
+                                        "profile.followers": userObj.info.clientID
                                     }
                                 })
 
@@ -1942,14 +1941,10 @@ let flip = {
 					"info.clientID": otherClientID
 				}, {
 					$addToSet: {
-                        "profile.followers": {
-                            $each: [
-                                clientID
-                            ],
-                            $position: 0
-                        }
+                        "profile.followers": clientID
 					}
 				}, function(err0, docs0) {
+                    console.log(err0,docs0)
 					if(!err0) {
                         flip.notification.create("", "follow", "", otherClientID, clientID)
 					}
@@ -1960,14 +1955,10 @@ let flip = {
 				},
 				{
 					$addToSet: {
-                        "profile.following": {
-                            $each: [
-                                clientID
-                            ],
-                            $position: 0
-                        }
+                        "profile.following": otherClientID
 					}
 				}, function(err0, docs0) {
+                    console.log(err0,docs0)
 					if(!err0) {
 						callback({
                             response: "OK"
@@ -2209,7 +2200,7 @@ let flip = {
                                                             username: uDocs[0].info.username,
                                                             profileImg: uDocs[0].profile.profileImg,
                                                             gradient: uDocs[0].profile.gradient,
-                                                            verified: uDocs[0].profile.verified
+                                                            badges: uDocs[0].profile.badges
                                                         }
 
                                                         cDoc.info = {
@@ -2587,12 +2578,7 @@ let flip = {
                         "info.postID": postID
                     }, {
                         $addToSet: {
-                            "data.stats.detailed.likedBy": {
-                                $each: [
-                                    clientID
-                                ],
-                                $position: 0
-                            }
+                            "data.stats.detailed.likedBy": clientID
                         }
                     }, function(err0, docs0) {
                         if(!err0) {
@@ -3173,13 +3159,15 @@ let flip = {
                     }
                 })
 
+                
+
                 // get user doc of action performer
                 flip.user.get.raw(fromClientID, function(data0) {
                     if(data0.response == "OK") {
                         // set 'data' equal to that users data
-                        let data = data0.data
+                        let uData = data0.data
                         // replace username of placeholder with sender's username
-                        pushData.body = pushData.body.replace("{USERNAME}", data.info.username)
+                        pushData.body = pushData.body.replace("{USERNAME}", uData.info.username)
 
                         // find notifications in db w/ same body (same note)
                         db.notifications.find(query, function(err0, docs0) {
@@ -3193,6 +3181,9 @@ let flip = {
                                     if(notificationType == "cMention") {
                                         notificationType = "mention";
                                     }
+                                    
+                                    // add to db
+                                    db.notifications.insert(data);
 
                                     // get the setting of the users preference if that type of notification should be sent
                                     flip.user.setting.get(forClientID, notificationType, "notification", function(shouldSend) {
@@ -3211,9 +3202,6 @@ let flip = {
                                             }
                                         })
                                     })
-
-                                    // add to db
-                                    db.notifications.insert(data)
                                 }
                             }
                         })
@@ -3468,7 +3456,7 @@ let flip = {
 		validate: {
             key: function(inp) {
                 if(inp) {
-                    if(inp.length > 0 && inp.length < 20) {
+                    if(inp.length > 0 && inp.length < 30) {
                         return true;
                     }
                 }
@@ -3636,11 +3624,15 @@ let flip = {
 		gen: {
             name: function(inp) {
                 let name = inp;
-                let capSplitted = name.split(/(?=[A-Z])/).join(" ");
-                let undSplitted = capSplitted.split("_").join(" ");
-                let trimmed = undSplitted.trim().replace(/\s{2,}/g, " ");
+                let undSplitted = flip.tools.gen.splitAtCharacter(name, "_");
+                let dotSplitted = flip.tools.gen.splitAtCharacter(undSplitted, ".");
+                let trimmed = dotSplitted.trim().replace(/\s{2,}/g, " ");
 
-                return name
+                return trimmed
+            },
+            splitAtCharacter: function(string, char) {
+                let splitted = string.split(char).map(function(word) { return word[0].toUpperCase() + word.substr(1).toLowerCase(); }).join(" ");
+                return splitted
             },
             randomGradient: function() {
                 let index = Math.floor(Math.random() * gradients.length);
@@ -3668,11 +3660,11 @@ let flip = {
                         sessionID: flip.tools.gen.sessionID()
 					},
 					profile: {
-						name: flip.tools.gen.name(usernane),
+						name: flip.tools.gen.name(username),
 						bio: "This user has no bio.",
                         profileImg: "https://flip.wtf/assets/img/flip_defaultUserIcon.png",
                         gradient: flip.tools.gen.randomGradient(),
-						verified: false,
+						badges: [],
 						followers: [],
                         following: ["gcVKSxFv2hk3o8V"],
                         blocked: []
@@ -3694,6 +3686,10 @@ let flip = {
                             comment: true,
                             like: true,
                             follow: true
+                        },
+                        discovery: {
+                            letFriendsFindMe: true,
+                            allowFeatureOnExplore: true
                         }
                     }
 				}
@@ -3778,13 +3774,18 @@ let flip = {
     addFieldToAllDocs: function() {
         db.users.update({}, {
             $set: {
-                "info.meta.unreadNotifications": 0
+                "security.discovery": {
+                    "letFriendsFindMe" : true,
+                    "allowFeatureOnExplore" : true
+                }
             }
         }, { multi: true }, function(err0, docs0) {
             console.log(err0, docs0)
         })
     }
 };
+
+// flip.addFieldToAllDocs();
 
 router.post("/user/login", function(req, res, next) {
 	let email = req.body.email;
@@ -4004,15 +4005,23 @@ router.post("/user/services/:name/get", function(req, res, next) {
             flip.auth(req.body, function(auth) {
                 if(auth.response == "OK") {
                     if(name == "contacts") {
-                        let emailAddresses = req.body["emailAddresses[]"];
-        
-                        flip.user.service.get.contacts(clientID, emailAddresses, function(data0) {
-                            if(data0.response == "OK") {
-                                res.send(data0);
-                            } else {
-                                res.send(data0);
+                        var emailAddresses = req.body["emailAddresses[]"];
+
+                        if(typeof emailAddresses !== "undefined") {
+                            if(emailAddresses.constructor !== Array) {
+                                emailAddresses = [emailAddresses]
                             }
-                        })
+    
+                            flip.user.service.get.contacts(clientID, emailAddresses, function(data0) {
+                                if(data0.response == "OK") {
+                                    res.send(data0);
+                                } else {
+                                    res.send(data0);
+                                }
+                            })
+                        } else {
+                            res.send(flip.tools.res.NO_DATA)
+                        }
                     } else if(name == "twitter") {
                         flip.user.service.get.twitter(clientID, function(data0) {
                             if(data0.response == "OK") {
@@ -4309,6 +4318,9 @@ router.post("/user/setting/update", function(req, res, next) {
     let rawState = req.body.state;
 
     var state = !(rawState == 1)
+
+    // console.log(req.body)
+    console.log("allowFeatureOnExplore".length)
 
 	if(type && key) {
         if((type == "notification" || type == "discovery") && flip.tools.validate.key(key)) {
