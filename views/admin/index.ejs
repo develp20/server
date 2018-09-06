@@ -8,15 +8,15 @@
                         <h3 class="title is-3">Latest Users</h3>
                     </div>
                 </div>
-                <div class="f-newUsers"></div>
+                <div class="f-newUsers card"></div>
             </div>
             <div class="column">
                 <div class="card f-card">
                     <div class="f-cardInner">
-                        <h3 class="title is-3">Latest Posts </h3>
+                        <h3 class="title is-3">Latest Posts</h3>
                     </div>
                 </div>
-                <div class="f-newPosts"></div>
+                <div class="f-newPosts card"></div>
             </div>
         </div>
     </div>
@@ -27,8 +27,7 @@
     </style>
     <script>
         $(document).ready(function(){
-            f.users.load();
-            f.posts.load();
+            f.home.load();
         })
     </script>
 <%- include("./inc/footer.ejs") %>

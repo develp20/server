@@ -5,3 +5,7 @@ time.f-time {
 input.f-cardTitleInput, textarea.f-cardBodyinput, input.f-userUsernameInput {
     margin-bottom: 10px;
 }
+
+div.f-explore, div.f-popular, div.f-newPosts, div.f-newUsers {
+    padding: 20px;
+}

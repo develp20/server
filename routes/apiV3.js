@@ -1359,15 +1359,18 @@ let flip = {
                                 if(doc.profile.blocked.indexOf(clientID) == -1) {
                                     var isFollowing = doc.profile.followers.indexOf(clientID) > -1;
                                     var isBlocked = user.profile.blocked.indexOf(doc.info.clientID) > -1;
-        
+                                    var followsYou = doc.profile.following.indexOf(clientID) > -1;
+
                                     let info = {
                                         clientID: doc.info.clientID,
                                         username: doc.info.username,
                                         joinedAt: doc.info.joinedAt,
+                                        joinedAgo: moment(doc.info.joinedAt).fromNow(),
                                         meta: {
                                             type: "user",
                                             isFollowing: isFollowing,
-                                            isBlocked: isBlocked
+                                            isBlocked: isBlocked,
+                                            followsYou: followsYou
                                         }
                                     };
         
@@ -1375,7 +1378,10 @@ let flip = {
                                         name: doc.profile.name,
                                         profileImg: doc.profile.profileImg,
                                         gradient: doc.profile.gradient,
-                                        badges: doc.profile.badges
+                                        badges: doc.profile.badges,
+
+                                        followers: (doc.profile.followers.length),
+                                        following: (doc.profile.following.length)
                                     };
         
                                     delete doc.info.deviceToken;
@@ -1944,7 +1950,6 @@ let flip = {
                         "profile.followers": clientID
 					}
 				}, function(err0, docs0) {
-                    console.log(err0,docs0)
 					if(!err0) {
                         flip.notification.create("", "follow", "", otherClientID, clientID)
 					}
@@ -1958,7 +1963,6 @@ let flip = {
                         "profile.following": otherClientID
 					}
 				}, function(err0, docs0) {
-                    console.log(err0,docs0)
 					if(!err0) {
 						callback({
                             response: "OK"
@@ -4318,9 +4322,6 @@ router.post("/user/setting/update", function(req, res, next) {
     let rawState = req.body.state;
 
     var state = !(rawState == 1)
-
-    // console.log(req.body)
-    console.log("allowFeatureOnExplore".length)
 
 	if(type && key) {
         if((type == "notification" || type == "discovery") && flip.tools.validate.key(key)) {
