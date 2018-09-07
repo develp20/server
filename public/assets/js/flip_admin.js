@@ -1,4 +1,4 @@
-let baseURL = "http://localhost:5000/api/v3/admin/"
+let baseURL = "/api/v3/admin/"
 
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
@@ -68,7 +68,7 @@ let f = {
                             </div>
                             <div class="media-content">
                                 <p class="title is-4">` + data.profile.name + `</p>
-                                <p class="subtitle is-6">@` + data.profile.username.toLowerCase().replace("@", "") + `</p>
+                                <p class="subtitle is-6">` + data.profile.username.toLowerCase() + `</p>
                             </div>
                         </div>
                         <div class="content">
@@ -94,7 +94,7 @@ let f = {
                             </div>
                             <div class="media-content">
                                 <p class="title is-4">` + data.profile.name + `</p>
-                                <p class="subtitle is-6">@` + data.info.username.toLowerCase().replace("@", "") + `</p>
+                                <p class="subtitle is-6">` + data.info.username.toLowerCase() + `</p>
                                 <p>` + data.profile.followers + ` followers and ` + data.profile.following + ` following</p>
                                 <p>Joined ` + data.info.joinedAgo + `</p>
                             </div>

@@ -353,7 +353,6 @@ let flip = {
     },
     explore: {
         latestID: function(callback) {
-            // callback("testt")
             db.explore.find({}).sort({
                 "info.feedCreatedAt": -1
             }).limit(1, function(err0, docs0) {
@@ -926,18 +925,18 @@ let flip = {
                                                                 callback(data4);
                                                             })
                                                         } else {
-                                                            callback(flip.tools.res.NO_DATA);
+                                                            callback(flip.tools.res.ERR);
                                                         }
                                                     })
                                                 } else {
-                                                    callback(flip.tools.res.NO_DATA);
+                                                    callback(flip.tools.res.ERR);
                                                 }
                                             })
                                         } else {
                                             callback(flip.tools.res.NO_DATA);
                                         }
                                     } else {
-                                        callback(flip.tools.res.NO_DATA);
+                                        callback(flip.tools.res.ERR);
                                     }
                                 })
                             } else {
@@ -957,60 +956,43 @@ let flip = {
                 let id = name.toLowerCase();
 
                 if(id == "twitter") {
-                    db.users.find({
-                        "services.twitter.accessToken": token
-                    }, function(err0, docs0) {
+                    var T = new Twit({
+                        consumer_key: dbConfig.twitter.consumer_key,
+                        consumer_secret: dbConfig.twitter.consumer_secret,
+                        access_token: token,
+                        access_token_secret: secret
+                    })
+
+                    T.get("account/verify_credentials", function(err0, data0, res0) {
                         if(!err0) {
-                            if(docs0.count == 0) {
-                                var T = new Twit({
-                                    consumer_key: dbConfig.twitter.consumer_key,
-                                    consumer_secret: dbConfig.twitter.consumer_secret,
-                                    access_token: token,
-                                    access_token_secret: secret
-                                })
-            
-                                T.get("account/verify_credentials", function(err0, data0, res0) {
-                                    if(!err0) {
-                                        let userID = data0.id_str;
-            
-                                        db.users.update({
-                                            "info.clientID": clientID
-                                        }, {
-                                            $set: {
-                                                "services.twitter": {
-                                                    userID: userID,
-                                                    accessToken: token,
-                                                    accessTokenSecret: secret
-                                                }
-                                            },
-                                            $addToSet: {
-                                                "services.connected": id
-                                            }
-                                        }, function(err1, docs1) {
-                                            if(!err1) {
-                                                callback({
-                                                    response: "OK"
-                                                });
-                                            } else {
-                                                callback(flip.tools.res.ERR);
-                                            }
-                                        })
-                                    } else {
-                                        callback(flip.tools.res.ERR);
+                            let userID = data0.id_str;
+
+                            db.users.update({
+                                "info.clientID": clientID
+                            }, {
+                                $set: {
+                                    "services.twitter": {
+                                        userID: userID,
+                                        accessToken: token,
+                                        accessTokenSecret: secret
                                     }
-                                })
-                            } else {
-                                callback({
-                                    response: "USER_LINKED_ACCOUNT",
-                                    formattedTitle: "Twitter Account In Use",
-                                    formattedResponse: "Another user has already linked this Twitter account to this flip account, please try again"
-                                });
-                            }
+                                },
+                                $addToSet: {
+                                    "services.connected": id
+                                }
+                            }, function(err1, docs1) {
+                                if(!err1) {
+                                    callback({
+                                        response: "OK"
+                                    });
+                                } else {
+                                    callback(flip.tools.res.ERR);
+                                }
+                            })
                         } else {
                             callback(flip.tools.res.ERR);
                         }
                     })
-                    
                 } else {
                     callback(flip.tools.res.SERVICE_UNKNOWN)
                 }
@@ -1107,8 +1089,10 @@ let flip = {
                 }
 
                 if(typeof settings.gradient !== "undefined") {
-                    masterSettings["profile.gradient"] = settings.gradient;
-                    hasUpdated = true
+                    if(typeof flip.tools.indexGradient(settings.gradient) != "undefined") {
+                        masterSettings["profile.gradient"] = settings.gradient;
+                        hasUpdated = true
+                    }
                 }
 
                 if(hasUpdated) {
@@ -1230,13 +1214,11 @@ let flip = {
                                                             isFollowing: isFollowing,
                                                             followsYou: followsYou,
                                                             isBlocked: isBlocked,
-                                                            hasUnreadNotifications: (docs0[0].info.meta.unreadNotifications > 0),
-                                                            isTwitterLinked: (docs0[0].services.connected.indexOf("twitter") > -1)
+                                                            hasUnreadNotifications: (docs0[0].info.meta.unreadNotifications > 0)
                                                         }
                                                     }
 
                                                     if(clientID != requesterClientID) {
-                                                        delete safeData.info.meta.isTwitterLinked;
                                                         delete safeData.info.meta.hasUnreadNotifications;
                                                     }
                                                     
@@ -2311,14 +2293,8 @@ let flip = {
                                                         delete cDoc.comments;
                                                         delete cDoc._id;
 
-                                                        if(cDoc.info.postID == "YdrQXkE3zB") {
-                                                            docs[i] = null
-                                                        }
-
-                                                        // if(i == 0) {
-                                                        //     cDoc.data.stats.formatted.views = "1.2k"
-                                                        //     cDoc.data.stats.formatted.likes = "759"
-                                                        //     cDoc.data.stats.formatted.comments = "249"
+                                                        // if(cDoc.info.postID == "YdrQXkE3zB") {
+                                                        //     docs[i] = null
                                                         // }
 
                                                         dataCount--;
@@ -2904,28 +2880,24 @@ let flip = {
 									flip.post.multi.handle(docs1, clientID, function(docs2) {
                                         if(docs2.response == "OK") {
                                             if(docs2.data.length < 10) {
-                                                docs2.data.push({
-                                                    info: {
-                                                        cardID: "HEY<3",
-                                                        cardCreatedAt: Date.now(),
-                                                        meta: {
-                                                            type: "card"
-                                                        }
-                                                    },
-                                                    data: {
-                                                        title: "Welcome to flip",
-                                                        date: "",
-                                                        desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
-                                                        gradient: [ 
-                                                            "#F76B1C", 
-                                                            "#FAD961"
-                                                        ],
-                                                        action: {
-                                                            type: "openFindFriends",
-                                                            title: "Find Friends"
-                                                        }
-                                                    }
-                                                })
+                                                // docs2.data.push({
+                                                //     info: {
+                                                //         cardID: "HEY<3",
+                                                //         cardCreatedAt: Date.now(),
+                                                //         meta: {
+                                                //             type: "card"
+                                                //         }
+                                                //     },
+                                                //     data: {
+                                                //         title: "Welcome to flip",
+                                                //         date: "",
+                                                //         desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera view, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
+                                                //         gradient: [ 
+                                                //             "#F76B1C", 
+                                                //             "#FAD961"
+                                                //         ]
+                                                //     }
+                                                // })
                                             }
                                         }
 
@@ -3515,11 +3487,9 @@ let flip = {
         },
         indexGradient: function(arrayMaster, array) {
             for(i = 0; i < arrayMaster.length; i++) {
-                if(typeof array !== "undefined") {
-                    if(arrayMaster[i][0] == array[0]) {
-                        if(arrayMaster[i][1] == array [1]) {
-                            return i
-                        }
+                if(arrayMaster[i][0] == array[0]) {
+                    if(arrayMaster[i][1] == array [1]) {
+                        return i
                     }
                 }
 
