@@ -1,0 +1,14 @@
+{
+	"mDB": "wg-master:awkward-mung-bagpipe-audacity-bonus-aria-daughter-isomer-humility-cleanse@167.99.93.193/admin",
+	"sgKey": "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",
+	"twitter": {
+		"consumer_key": "WW8e5EA0d1tlb9ZotojxspHDq",
+		"consumer_secret": "KG3WB0kt6ITvEjeBltv6JJqEHKg0JFf4q4QK3TxF7T8WKFmxe7",
+		"bearer_token": "AAAAAAAAAAAAAAAAAAAAAIs36wAAAAAAYi5ynT7MRIOl1JuUzJYpl8t6G7s%3DpBjv278bWdUJnl446C6UgOzGWq9yzpn3Dset0ouyWYpcuIz2UG"
+	},
+	"apns": {
+		"key": "config/AuthKey_F222L3UN88.p8",
+		"keyId": "F222L3UN88",
+		"teamId": "TR3V3JFX6K"
+	}
+}
