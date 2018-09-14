@@ -62,9 +62,11 @@ let db = mongojs(dbConfig.mDB, [ "users", "posts", "chat", "reservations", "feat
 
 // BCRYPT
 let bcrypt = require("bcrypt");
+let md5 = require("md5");
 
 // RANDOM POSSIBLE CHARACTERS
 let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+let FL_LIVE_TYPING_ENC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 // FFMPEG
 let ffmpeg = require("fluent-ffmpeg");
@@ -183,11 +185,26 @@ let flip = {
                                         }
                                     }
 
+                                    var privileges = {
+                                        isChatEnabled: false,
+                                        canUploadVideos: true,
+                                        timeLimit: 7.5
+                                    }
+
+                                    if(data0.data.info.username == "william") {
+                                        privileges = {
+                                            isChatEnabled: true,
+                                            canUploadVideos: true,
+                                            timeLimit: 20
+                                        }
+                                    }
+
                                     console.log(data0.data.info.username.toLowerCase() + " just made a request")
                                     
                                     callback({
                                         response: "OK",
-                                        data: data0.data
+                                        data: data0.data,
+                                        privileges: privileges
                                     });
                                 } else {
                                     callback({
@@ -5623,6 +5640,14 @@ flip.chat = {
                     let messages = doc.data.messages;
                     let messageCount = messages.length;
 
+                    let liveTypingKey = md5(participents.join(doc.info.threadID))
+
+                    doc.info.threadLiveTypingKey = liveTypingKey
+
+                    if(typeof FL_LIVE_TYPING_KEYS[liveTypingKey] == "undefined") {
+                        FL_LIVE_TYPING_KEYS[liveTypingKey] = doc.info.threadID;
+                    }
+
                     doc.participents = {};
                     doc.data.messages = messages.slice(messages.length - totalMessageCount, messages.length)
 
@@ -5670,21 +5695,87 @@ flip.chat = {
             multi: function(docs, clientID, callback) {
                 var processed = docs.length;
 
-                docs.forEach(function(doc, i) {
-                    doc.info.messageSentAgo = flip.tools.gen.tDef(moment(doc.info.messageSentAt).local().fromNow())
-
-                    processed--;
-                    if(processed == 0) {
-                        callback({
-                            response: "OK",
-                            data: docs
-                        })
-                    }
-                })
+                if(docs.length > 0) {
+                    docs.forEach(function(doc, i) {
+                        doc.info.messageSentAgo = flip.tools.gen.tDef(moment(doc.info.messageSentAt).local().fromNow())
+    
+                        processed--;
+                        if(processed == 0) {
+                            callback({
+                                response: "OK",
+                                data: docs
+                            })
+                        }
+                    })
+                } else {
+                    callback({
+                        response: "OK",
+                        data: []
+                    })
+                }
             }
         }
     },
     thread: {
+        create: function(clientID, assocID, callback) {
+            // check for existing chats, might have conflict in the future w/ group chats
+            db.chat.find({
+                $and: [
+                    {
+                        "info.threadParticipents": clientID
+                    },
+                    {
+                        "info.threadParticipents": assocID
+                    }
+                ]
+            }, function(err0, docs0) {
+                if(!err0) {
+                    if(docs0.length == 0) {
+                        let thread = {
+                            info: {
+                                threadID: flip.tools.gen.threadID(),
+                                threadCreatedAt: Date.now(),
+                                threadLastUpdatedAt: Date.now(),
+                                threadParticipents: [
+                                    clientID,
+                                    assocID
+                                ]
+                            },
+                            data: {
+                                messages: []
+                            }
+                        }
+
+                        db.chat.insert(thread, function(err1, docs1) {
+                            if(!err1) {
+                                console.log([thread], clientID, 10)
+                                flip.chat.threads.handle.multi([thread], clientID, 10, function(data0) {
+                                    console.log(data0)
+                                    if(data0.response == "OK") {
+                                        callback({
+                                            response: "OK",
+                                            data: data0.data[0]
+                                        })
+                                    } else {
+                                        callback(flip.tools.res.ERR);
+                                    }
+                                })
+                            } else {
+                                callback(flip.tools.res.ERR);
+                            }
+                        })
+                    } else {
+                        console.log(docs0, clientID, 10)
+                        flip.chat.threads.handle.multi(docs0, clientID, 10, function(data0) {
+                            console.log(data0)
+                            callback(data0);
+                        })
+                    }
+                } else {
+                    callback(flip.tools.res.ERR);
+                }
+            });
+        },
         get: function(threadID, clientID, callback) {
             db.chat.find({
                 $and: [
@@ -5711,6 +5802,13 @@ flip.chat = {
                 }
             })
         },
+        gen: {
+            socketKey: function(threadID, participents) {
+                let key = md5(participents.join(threadID))
+
+                return key
+            }
+        },
         message: {
             send: function(message, threadID, clientID, callback) {
                 var message = {
@@ -5728,6 +5826,18 @@ flip.chat = {
                     }
                 }
 
+                db.chat.find({
+                    "info.threadID": threadID
+                }, function(err0, docs0) {
+                    if(!err0) {
+                        if(docs0.length > 0) {
+                            let socketKey = flip.chat.thread.gen.socketKey(docs0[0].info.threadID, docs0[0].info.threadParticipents)
+
+                            io.to(socketKey).emit("FL_CH_NEW_MESSAGE_SENT", message)
+                        }
+                    }
+                })
+
                 db.chat.update({
                     "info.threadID": threadID
                 }, {
@@ -5741,6 +5851,7 @@ flip.chat = {
                     if(!err0) {
                         flip.chat.messages.handle.multi([message], clientID, function(data0) {
                             if(data0.response == "OK") {
+
                                 callback({
                                     response: "OK",
                                     data: data0.data[0]
@@ -5786,6 +5897,35 @@ flip.chat = {
         }
     }
 }
+
+app.post(apiPrefix + "/chat/thread/create", (req, res) => {
+    let clientID = req.body.clientID;
+    let sessionID = req.body.sessionID;
+    
+    let forClientID = req.body.forClientID;
+
+    if(forClientID) {
+        if(flip.tools.validate.clientID(forClientID)) {
+            flip.auth(req.body, function(auth0) {
+                if(auth0.response == "OK") {
+                    flip.chat.thread.create(clientID, forClientID, function(data0) {
+                        if(data0.response == "OK") {
+                            res.send(data0)
+                        } else {
+                            res.send(data0);
+                        }
+                    })
+                } else {
+                    res.send(auth0);
+                }
+            });
+        } else {
+            res.send(flip.tools.res.INVALID_PARAMS);
+        }
+    } else {
+        res.send(flip.tools.res.INSUFFICIANT_PARAMS);
+    }
+})
 
 app.post(apiPrefix + "/chat/thread/message/create", (req, res) => {
     let clientID = req.body.clientID;
@@ -5924,24 +6064,30 @@ app.post(apiPrefix + "/chat/threads/get", (req, res) => {
     }
 });
 
+var FL_LIVE_TYPING_KEYS = {}
+
 server.listen(4000, function() {
     console.log("Listening on port 4000")
 });
 
 io.on("connection", function(socket) {
-    console.log("A user connected")
+    console.log("User Connected")
 
-    socket.on("test", function(data) {
-        console.log(data)
+    socket.on("FL_CH_SUBSCRIBE_TO_THREAD", function(threadData) {
+        socket.join(threadData.threadLiveTypingKey)
+
+        console.log("FL_CH_SUBSCRIBE_TO_THREAD", threadData, socket.id)
+
+        FL_LIVE_TYPING_KEYS[socket.id] = threadData.threadLiveTypingKey
     })
 
-    socket.on("LT-test", function(data) {
-        console.log(data)
+    socket.on("FL_CH_LT_DID_TYPING_OCCUR", function(data) {
+        console.log("FL_CH_LT_DID_TYPING_OCCUR:", socket.id, FL_LIVE_TYPING_KEYS[socket.id], data)
+        io.to(FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_LT_DID_TYPING_OCCUR", data)
+    })
+
+    socket.on("disconnect", function() {
+        console.log("User Disconnected:", socket.id, FL_LIVE_TYPING_KEYS[socket.id])
+        delete FL_LIVE_TYPING_KEYS[socket.id]
     })
 })
-
-
-
-// app.listen(4000, function() {
-//     console.log("Listening on port :4000")
-// })
