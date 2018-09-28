@@ -875,24 +875,6 @@ let flip = {
                                                 }
                                             }
                                         })
-
-                                        data0.data.splice(0, 0, {
-                                            "info" : {
-                                                "cardID" : "Hu4ti",
-                                                "cardCreatedAt" : 1535925404252.0,
-                                                "meta" : {
-                                                    "type" : "banner"
-                                                }
-                                            },
-                                            "data" : {
-                                                "bannerImgURL" : "https://cdn.nuyr.io/COALCHELLA_bannerNew.png",
-                                                "bannerImgURL_dark" : "https://cdn.nuyr.io/COALCHELLA_bannerNew.png"
-                                            },
-                                            "action" : {
-                                                "type" : "openSVC",
-                                                "url" : "https://minecraft.xxx"
-                                            }
-                                        })
                                     }
 
                                     data0.meta = {
@@ -2255,7 +2237,7 @@ let flip = {
                         var processed = docs0.length;
 
                         for(i = 0; i < docs0.length; i++) {
-                            docs0[i].data.hashtag = docs0[i].data.hashtag.toUpperCase();
+                            // docs0[i].data.hashtag = docs0[i].data.hashtag.toUpperCase();
                             docs0[i].data.posts = docs0[i].data.uses.last24h + ""
 
                             delete docs0[i]._id;
@@ -3946,7 +3928,8 @@ let flip = {
 					},
 					security: {
                         email: email,
-                        sessionID: flip.tools.gen.sessionID()
+                        sessionID: flip.tools.gen.sessionID(),
+                        isUsingJWTauth: false
 					},
 					profile: {
 						name: flip.tools.gen.name(username),

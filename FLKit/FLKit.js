@@ -124,20 +124,26 @@ Array.prototype.clean = function(deleteValue) {
 let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
 let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
 
-var FL_LIVE_TYPING_KEYS = {};
-var FL_LIVE_TYPING_USERS = {};
-
-let flip = {
-    authWithToken: function(req, callback) {
+const flip = {
+    io: null,
+    auth: function(req, callback) {
         let token = req.headers["authorization"];
 
         if(token) {
             jwt.verify(token, dbConfig.jwt.secret, function(err0, decoded) {
                 if(!err0) {
                     let clientID = decoded.clientID;
+                    let sessionID = decoded.sessionID;
 
                     db.users.find({
-                        "info.clientID": clientID,
+                        $and: [
+                            {
+                                "info.clientID": clientID
+                            },
+                            {
+                                "security.sessionID": sessionID
+                            }
+                        ],
                     }, function(err0, docs0) {
                         if(!err0) {
                             if(docs0.length > 0) {
@@ -157,15 +163,16 @@ let flip = {
                                                 });
                                             }
                                         }
-    
+
                                         let privileges = {
                                             isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                             canUploadVideos: true,
+                                            doesRequireWatermarkOnExport: !(data0.data.info.username == "william"),
                                             timeLimit: 7.5
                                         }
-    
+
                                         console.log(data0.data.info.username.toLowerCase() + " just made a request")
-                                        
+
                                         callback({
                                             response: "OK",
                                             data: data0.data,
@@ -195,20 +202,6 @@ let flip = {
                 response: "NO_TOKEN_PROVIDED",
                 statusCode: 401
             });
-        }
-    },
-    auth: function(body, callback) {
-        let clientID = body.clientID;
-        let sessionID = body.sessionID;
-
-        if(clientID && sessionID) {
-            if(flip.tools.validate.clientID(clientID) && flip.tools.validate.sessionID(sessionID)) {
-                
-            } else {
-                callback(flip.tools.res.INVALID_PARAMS);
-            }
-        } else {
-            callback(flip.tools.res.INSUFFICIANT_PARAMS);
         }
     },
     admin: {
@@ -691,11 +684,11 @@ let flip = {
         compile: {
             manual: function(data, clientID, hasGotMoreItems, callback) {
                 var processed = data.length;
-    
+
                 var meta = {
                     hasGotMoreItems: hasGotMoreItems
                 }
-    
+
                 data.forEach(function(doc, i) {
                     if(doc != null) {
                         if(doc.info.meta.type == "post") {
@@ -703,16 +696,16 @@ let flip = {
                                 if(data0.response == "OK") {
                                     data0.data.info.cardID = doc.info.cardID
                                     data0.data.info.cardCreatedAt = doc.info.cardCreatedAt
-    
+
                                     data[i] = data0.data
-    
+
                                     processed--;
                                 } else {
                                     data[i] = null
-    
+
                                     processed--;
                                 }
-    
+
                                 if(processed == 0) {
                                     callback({
                                         response: "OK",
@@ -728,14 +721,14 @@ let flip = {
                                     processed--;
                                     data0.data.info.cardID = doc.info.cardID
                                     data0.data.info.cardCreatedAt = doc.info.cardCreatedAt
-    
+
                                     data[i] = data0.data
                                 } else {
                                     data[i] = null
-                                    
+
                                     processed--;
                                 }
-    
+
                                 if(processed == 0) {
                                     callback({
                                         response: "OK",
@@ -750,7 +743,7 @@ let flip = {
                                 if(data0.response == "OK") {
                                     if(data0.data.length > 0) {
                                         processed--;
-    
+
                                         data[i].data = {
                                             title: "Trending",
                                             date: "",
@@ -760,20 +753,20 @@ let flip = {
                                                 "#F900D4"
                                             ]
                                         }
-    
+
                                         data[i].data.hashtags = data0.data
                                     } else {
                                         data[i] = null
                                         data[i + 1] = null
-    
+
                                         processed--;
                                     }
                                 } else {
                                     data[i] = null
-    
+
                                     processed--;
                                 }
-    
+
                                 if(processed == 0) {
                                     callback({
                                         response: "OK",
@@ -785,10 +778,10 @@ let flip = {
                             })
                         } else if(doc.info.meta.type == "card") {
                             processed--;
-    
+
                             data[i].data.gradient = data[i].data.colors;
                             delete data[i].data.colors;
-    
+
                             if(processed == 0) {
                                 callback({
                                     response: "OK",
@@ -799,7 +792,7 @@ let flip = {
                             }
                         } else {
                             processed--;
-    
+
                             if(processed == 0) {
                                 callback({
                                     response: "OK",
@@ -811,7 +804,7 @@ let flip = {
                         }
                     } else {
                         processed--;
-    
+
                         if(processed == 0) {
                             callback({
                                 response: "OK",
@@ -875,30 +868,12 @@ let flip = {
                                                 }
                                             }
                                         })
-
-                                        data0.data.splice(0, 0, {
-                                            "info" : {
-                                                "cardID" : "Hu4ti",
-                                                "cardCreatedAt" : 1535925404252.0,
-                                                "meta" : {
-                                                    "type" : "banner"
-                                                }
-                                            },
-                                            "data" : {
-                                                "bannerImgURL" : "https://cdn.nuyr.io/COALCHELLA_bannerNew.png",
-                                                "bannerImgURL_dark" : "https://cdn.nuyr.io/COALCHELLA_bannerNew.png"
-                                            },
-                                            "action" : {
-                                                "type" : "openSVC",
-                                                "url" : "https://minecraft.xxx"
-                                            }
-                                        })
                                     }
 
                                     data0.meta = {
                                         hasGotMoreItems: false
                                     }
-                                    
+
                                     flip.hashtag.get(function(data1) {
                                         if(data1.response == "OK") {
                                             if(data1.data.length > 0) {
@@ -920,7 +895,7 @@ let flip = {
                                                         ]
                                                     }
                                                 })
-            
+
                                                 data0.data[0].data.hashtags = data1.data
 
                                                 callback(data0);
@@ -955,11 +930,11 @@ let flip = {
                             if(docs0[0].info.feedCreatedAt > (Date.now() - (86400000 * 7))) {
                                 var exploreLimit = 10
                                 var exploreData = docs0[0].data
-    
+
                                 if(!inf) {
                                     exploreData = exploreData.slice(parseInt(index), parseInt(index) + 10)
                                 }
-    
+
                                 if(exploreData.length > 0) {
                                     flip.explore.compile.manual(exploreData, clientID, !(exploreData.length < 10), function(data0) {
                                         if(data0.response == "OK") {
@@ -970,7 +945,7 @@ let flip = {
                                     });
                                 } else {
                                     callback(flip.tools.res.NO_DATA);
-                                }   
+                                }
                             } else {
                                 flip.explore.compile.auto(clientID, index, function(data0) {
                                     if(data0.response == "OK") {
@@ -991,6 +966,58 @@ let flip = {
         }
     },
     user: {
+        token: {
+            generate: function(clientID, sessionID) {
+                let token = jwt.sign({
+                    clientID: clientID,
+                    sessionID: sessionID
+                }, dbConfig.jwt.secret);
+
+                return token
+            },
+            switchover: function(clientID, sessionID, callback) {
+                db.users.find({
+                    $and: [
+                        {
+                            "info.clientID": clientID
+                        },
+                        {
+                            "security.sessionID": sessionID
+                        },
+                        {
+                            "security.isUsingJWTAuth": false
+                        }
+                    ]
+                }, function(err0, data0) {
+                    if(!err0) {
+                        if(data0.length > 0) {
+                            let token = flip.user.token.generate(clientID, sessionID);
+
+                            db.users.update({
+                                "info.clientID": clientID
+                            }, {
+                                $set: {
+                                    "security.isUsingJWTAuth": true
+                                }
+                            });
+
+                            callback({
+                                response: "OK",
+                                data: {
+                                    clientID: clientID,
+                                    token: token
+                                },
+                                statusCode: 200
+                            });
+                        } else {
+                            callback(flip.tools.res.NO_AUTH);
+                        }
+                    } else {
+                        callback(flip.tools.res.ERR);
+                    }
+                });
+            }
+        },
         logout: function(clientID, callback) {
             flip.user.get.raw(clientID, function(data0) {
                 if(data0.response == "OK") {
@@ -1106,7 +1133,7 @@ let flip = {
                             } else {
                                 callback(flip.tools.res.NO_DATA);
                             }
-                        } else { 
+                        } else {
                             callback(data0);
                         }
                     })
@@ -1131,11 +1158,11 @@ let flip = {
                                     access_token: token,
                                     access_token_secret: secret
                                 })
-            
+
                                 T.get("account/verify_credentials", function(err0, data0, res0) {
                                     if(!err0) {
                                         let userID = data0.id_str;
-            
+
                                         db.users.update({
                                             "info.clientID": clientID
                                         }, {
@@ -1167,7 +1194,7 @@ let flip = {
                             callback(flip.tools.res.ERR);
                         }
                     })
-                    
+
                 } else {
                     callback(flip.tools.res.SERVICE_UNKNOWN)
                 }
@@ -1311,7 +1338,7 @@ let flip = {
                 };
 
                 data["$set"]["settings." + type + "." + key] = state;
-                
+
                 db.users.update({
                     "info.clientID": clientID
                 }, data, function(err0, docs0) {
@@ -1392,7 +1419,7 @@ let flip = {
                                                         delete safeData.info.meta.isTwitterLinked;
                                                         delete safeData.info.meta.hasUnreadNotifications;
                                                     }
-                                                    
+
                                                     if(docs0[0].profile.bio == "This user has no bio.") {
                                                         docs0[0].profile.bio = "";
                                                     }
@@ -1544,7 +1571,7 @@ let flip = {
                                             followsYou: followsYou
                                         }
                                     };
-        
+
                                     let profile = {
                                         name: doc.profile.name,
                                         profileImg: doc.profile.profileImg,
@@ -1554,14 +1581,14 @@ let flip = {
                                         followers: (doc.profile.followers.length),
                                         following: (doc.profile.following.length)
                                     };
-        
+
                                     delete doc.info.deviceToken;
-        
+
                                     result.push({
                                         info: info,
                                         profile: profile
                                     });
-        
+
                                     max0--;
                                     if(max0 == 0) {
                                         callback({
@@ -1899,7 +1926,7 @@ let flip = {
                 if(!err0) {
                     if(docs0.length > 0) {
                         if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
-                            var token = jwt.sign({ clientID: docs0[0].info.clientID }, dbConfig.jwt.secret);
+                            let token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].security.sessionID);
 
                             callback({
                                 response: "OK",
@@ -1910,7 +1937,7 @@ let flip = {
                                 statusCode: 200
                             })
                         } else {
-                            callback(flip.tools.res.TEMP_SUSPENDED)                                
+                            callback(flip.tools.res.TEMP_SUSPENDED)
                         }
                     } else {
                         callback(flip.tools.res.SIGNUP_NEEDED);
@@ -1932,7 +1959,7 @@ let flip = {
                     if(docs0.length > 0) {
                         if(bcrypt.compareSync(password, docs0[0].security.password)) {
                             if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
-                                var token = jwt.sign({ clientID: docs0[0].info.clientID }, dbConfig.jwt.secret);
+                                let token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].security.sessionID);
 
                                 callback({
                                     response: "OK",
@@ -1943,7 +1970,7 @@ let flip = {
                                     statusCode: 200
                                 })
                             } else {
-                                callback(flip.tools.res.TEMP_SUSPENDED)                                
+                                callback(flip.tools.res.TEMP_SUSPENDED)
                             }
                         } else {
                             callback(flip.tools.res.LOGIN_ERR);
@@ -1986,7 +2013,7 @@ let flip = {
 
                                 if(typeof twitterData.tokens.token !== "undefined" && typeof twitterData.tokens.secret !== "undefined") {
                                     userObj.services.connected.push("twitter")
-                                    
+
                                     flip.user.service.connect(userObj.info.clientID, twitterData, function(data0) {})
                                 }
 
@@ -2007,7 +2034,7 @@ let flip = {
                                     We're so happy that you're here. If you need any help, just email us at <a href="mailto:support@flip.wtf">support@flip.wtf</a> and we'll be happy to help.</br>
                                     We can't wait to see what you post on flip. See you there!</br></br>
                                     -Team Flip`
-                                        
+
                                 }
 
                                 sgMail.send(msg)
@@ -2195,7 +2222,7 @@ let flip = {
                         var processed = docs0.length;
 
                         for(i = 0; i < docs0.length; i++) {
-                            docs0[i].data.hashtag = docs0[i].data.hashtag.toUpperCase();
+                            // docs0[i].data.hashtag = docs0[i].data.hashtag.toUpperCase();
                             docs0[i].data.posts = docs0[i].data.uses.last24h + ""
 
                             delete docs0[i]._id;
@@ -2410,8 +2437,9 @@ let flip = {
 
                                                         cDoc.data = {
                                                             caption: cDoc.data.caption,
-                                                            streamURL: "https://api.flip.wtf/v3/post/stream/" + cDoc.info.postID,
-                                                            thumbURL: "https://api.flip.wtf/v3/post/thumb/" + cDoc.info.postID,
+                                                            streamURL: "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
+                                                            // streamURL: "https://api.flip.wtf/v3/post/stream/" + cDoc.info.postID,
+                                                            thumbURL: "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png",
                                                             stats: {
                                                                 formatted: {
                                                                     views: shortNumber(Math.round(cDoc.data.stats.raw.views)) + "",
@@ -2433,8 +2461,6 @@ let flip = {
                                                             docs[i] = null
                                                         }
 
-                                                        // console.log(cDoc.info.postID)
-
                                                         if(cDoc.info.postID == "qFYQHBytxr") {
                                                             cDoc.data.stats.formatted.views = "1.2k"
                                                             cDoc.data.stats.formatted.likes = "759"
@@ -2442,7 +2468,7 @@ let flip = {
                                                         }
 
                                                         dataCount--;
-                                                        
+
                                                         if(dataCount == 0) {
                                                             callback({
                                                                 response: "OK",
@@ -3032,8 +3058,8 @@ let flip = {
                                                         title: "Welcome to flip",
                                                         date: "",
                                                         desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
-                                                        gradient: [ 
-                                                            "#F76B1C", 
+                                                        gradient: [
+                                                            "#F76B1C",
                                                             "#FAD961"
                                                         ],
                                                         action: {
@@ -3342,7 +3368,7 @@ let flip = {
                     }
                 })
 
-                
+
 
                 // get user doc of action performer
                 flip.user.get.raw(fromClientID, function(data0) {
@@ -3364,7 +3390,7 @@ let flip = {
                                     if(notificationType == "cMention") {
                                         notificationType = "mention";
                                     }
-                                    
+
                                     // add to db
                                     db.notifications.insert(data);
 
@@ -3468,7 +3494,7 @@ let flip = {
                                 } else {
                                     note.aps["imageIs3by4"] = false
                                 }
-    
+
                                 note.sound = "flip_sound";
                                 note.alert = data.body;
 
@@ -3513,6 +3539,8 @@ let flip = {
         }
     },
     chat: {
+        FL_LIVE_TYPING_KEYS: {},
+        FL_LIVE_TYPING_USERS: {},
         user: {
             auth: function(clientID, threadID, callback) {
                 db.chat.find({
@@ -3562,43 +3590,47 @@ let flip = {
             handle: {
                 multi: function(docs, clientID, totalMessageCount, callback) {
                     var processed = docs.length;
-    
+
                     docs.forEach(function(doc, i) {
                         let participents = doc.info.threadParticipents;
                         let messages = doc.data.messages;
                         let messageCount = messages.length;
-    
+
                         let liveTypingKey = md5(participents.join(doc.info.threadID))
-    
+
                         doc.info.threadLiveTypingKey = liveTypingKey
-    
-                        if(typeof FL_LIVE_TYPING_KEYS[liveTypingKey] == "undefined") {
-                            FL_LIVE_TYPING_KEYS[liveTypingKey] = doc.info.threadID;
+
+                        if(typeof flip.chat.FL_LIVE_TYPING_KEYS[liveTypingKey] == "undefined") {
+                            flip.chat.FL_LIVE_TYPING_KEYS[liveTypingKey] = doc.info.threadID;
                         }
-    
+
                         doc.participents = {};
-                        doc.data.messages = messages.slice(messages.length - totalMessageCount, messages.length)
+
+                        if(messages.length >= totalMessageCount) {
+                            doc.data.messages = messages.slice(messages.length - totalMessageCount, messages.length)
+                        }
+
                         doc.info.threadCreatedAgo = flip.tools.gen.tDef(moment(doc.info.threadCreatedAt).local().fromNow())
-    
+
                         delete doc._id;
-    
+
                         if(participents.length == 2) {
                             let otherParticipent = "";
-    
+
                             if(participents[0] == clientID) {
                                 otherParticipent = participents[1]
                             } else {
                                 otherParticipent = participents[0]
                             }
-    
+
                             flip.user.get.safe.clientID(otherParticipent, clientID, function(data0) {
                                 if(data0.response == "OK") {
                                     doc.participents[otherParticipent] = data0.data
-    
+
                                     flip.chat.messages.handle.multi(doc.data.messages, clientID, function(data1) {
                                         if(data1.response == "OK") {
                                             doc.data.messages = data1.data
-    
+
                                             processed--;
                                             if(processed == 0) {
                                                 callback({
@@ -3623,16 +3655,20 @@ let flip = {
             handle: {
                 multi: function(docs, clientID, callback) {
                     var processed = docs.length;
-    
+
+                    var newMessages = [];
+
                     if(docs.length > 0) {
                         docs.forEach(function(doc, i) {
                             doc.info.messageSentAgo = flip.tools.gen.tDef(moment(doc.info.messageSentAt).local().fromNow())
-        
+
+                            newMessages.splice(0, 0, doc)
+
                             processed--;
                             if(processed == 0) {
                                 callback({
                                     response: "OK",
-                                    data: docs
+                                    data: newMessages
                                 })
                             }
                         })
@@ -3674,12 +3710,10 @@ let flip = {
                                     messages: []
                                 }
                             }
-    
+
                             db.chat.insert(thread, function(err1, docs1) {
                                 if(!err1) {
-                                    console.log([thread], clientID, 10)
                                     flip.chat.threads.handle.multi([thread], clientID, 10, function(data0) {
-                                        console.log(data0)
                                         if(data0.response == "OK") {
                                             callback({
                                                 response: "OK",
@@ -3694,9 +3728,7 @@ let flip = {
                                 }
                             })
                         } else {
-                            console.log(docs0, clientID, 10)
                             flip.chat.threads.handle.multi(docs0, clientID, 10, function(data0) {
-                                console.log(data0)
                                 callback(data0);
                             })
                         }
@@ -3745,7 +3777,7 @@ let flip = {
                         if(docs0.length > 0) {
                             flip.chat.threads.handle.multi(docs0, clientID, 100, function(data0) {
                                 data0.data = data0.data[0];
-    
+
                                 callback(data0);
                             })
                         } else {
@@ -3759,7 +3791,7 @@ let flip = {
             gen: {
                 socketKey: function(threadID, participents) {
                     let key = md5(participents.join(threadID))
-    
+
                     return key
                 }
             },
@@ -3779,19 +3811,17 @@ let flip = {
                             content: message
                         }
                     }
-    
+
                     db.chat.find({
                         "info.threadID": threadID
                     }, function(err0, docs0) {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 let socketKey = flip.chat.thread.gen.socketKey(docs0[0].info.threadID, docs0[0].info.threadParticipents)
-    
-                                io.to(socketKey).emit("FL_CH_NEW_MESSAGE_SENT", messageData)
-    
+
                                 for(i = 0; i < docs0[0].info.threadParticipents.length; i++) {
                                     let participentID = docs0[0].info.threadParticipents[i];
-    
+
                                     if(participentID != clientID) {
                                         flip.notification.send({
                                             forClientID: participentID,
@@ -3803,7 +3833,7 @@ let flip = {
                             }
                         }
                     })
-    
+
                     db.chat.update({
                         "info.threadID": threadID
                     }, {
@@ -3817,9 +3847,9 @@ let flip = {
                         if(!err0) {
                             flip.chat.messages.handle.multi([messageData], clientID, function(data0) {
                                 if(data0.response == "OK") {
-    
-                                    
-    
+
+
+
                                     callback({
                                         response: "OK",
                                         data: data0.data[0]
@@ -3893,7 +3923,7 @@ let flip = {
                 response: "NO_CHAT_AUTH",
                 formattedTitle: "No Chat Permissions",
                 formattedResponse: "You don't have permission to view or send messages to this chat.",
-                statusCode: 406                
+                statusCode: 406
             },
             EMAIL_ALREADY_IN_USE: {
                 response: "EMAIL_ALREADY_IN_USE",
@@ -4063,7 +4093,7 @@ let flip = {
                 return false;
             },
             query: function(inp) {
-                if(inp) { 
+                if(inp) {
                     if(inp.length > 0 && inp.length < 20) {
                         return true;
                     }
@@ -4091,7 +4121,7 @@ let flip = {
                         }
                     }
                 }
-                
+
                 return false
             },
             username: function(inp) {
@@ -4100,7 +4130,7 @@ let flip = {
                         if(inp.length > 0 && inp.length < 16) {
                             inp = inp.replace("@", "");
                             inp = inp.trim();
-    
+
                             if(/^[0-9a-zA-Z_.-]+$/.test(inp)) {
                                 return true;
                             }
@@ -4246,10 +4276,9 @@ let flip = {
             },
             user: function(username, email) {
                 let clientID = flip.tools.gen.clientID();
+                let sessionID = flip.tools.gen.sessionID();
 
-                let token = jwt.sign({
-                    clientID: clientID
-                }, dbConfig.jwt.secret);
+                let token = flip.user.token.generate(clientID, sessionID)
 
                 return {
                     info: {
@@ -4261,7 +4290,9 @@ let flip = {
                         }
                     },
                     security: {
+                        sessionID: this.sessionID,
                         email: email,
+                        isUsingJWTAuth: true,
                         token: token
                     },
                     profile: {
@@ -4383,62 +4414,17 @@ let flip = {
         }
     },
     addFieldToAllDocs: function() {
-        db.users.update({
-            "profile.profileImg": "https://flip.wtf/assets/img/flip_defaultUserIcon.png"
-        }, {
+        db.users.update({}, {
             $set: {
-                "profile.profileImg": "https://nuyr.io/assets/img/apps/flip/flip_defaultUserIcon.png"
+                "security.isUsingJWTAuth": false,
+            },
+            $unset: {
+                "security.discovery": ""
             }
         }, { multi: true }, function(err0, docs0) {
             console.log(err0, docs0)
         })
     }
 };
-
-// var collectedTokens = [];
-
-// db.users.find({
-//     $and: [
-//         {
-//             "settings.notification.explore": true
-//         },
-//         {
-//             "info.deviceToken": {
-//                 $ne: null
-//             }
-//         }
-//     ]
-// }, function(err0, docs0) {
-//     if(!err0) {
-//         docs0.forEach(function(doc, i) {
-//             if(collectedTokens.indexOf(doc.info.deviceToken) == -1) {
-//                 collectedTokens.push(doc.info.deviceToken)
-
-//                 let deviceToken = doc.info.deviceToken
-//                 var note = new apn.Notification();
-    
-//                 note.mutableContent = 1;
-
-//                 note.sound = "flip_sound";
-
-//                 note.alert = "If you're at the digital Minecraft festival, Coalchella, take some videos and post them on flip with #COALCHELLA! We'll feature the best on Explore tomorrow. Learn more at https://minecraft.xxx. flip is not associated with #COALCHELLA.";
-//                 note.title = "#COALCHELLA"
-
-//                 note.topic = "wtf.flip.ios";
-
-//                 productionAPNSProvider.send(note, deviceToken).then((result0) => {
-//                     if(result0.failed.length > 0) {
-//                         console.log("Failed! Attempting resend to developer device...");
-//                         developmentAPNSProvider.send(note, deviceToken).then((result1) => {
-//                             console.log("Sent sent developer notification to " + docs0[0].info.username + "!")
-//                         });
-//                     } else {
-//                         console.log("Sent notification to " + docs0[0].info.username + "!")
-//                     }
-//                 });
-//             }
-//         })
-//     }
-// })
 
 module.exports = flip;
