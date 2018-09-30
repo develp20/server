@@ -1395,16 +1395,16 @@ const flip = {
                                                         clientID: docs0[0].info.clientID,
                                                         username: docs0[0].info.username,
                                                         joinedAt: docs0[0].info.joinedAt,
-                                                        time: {
-                                                            date: {
-                                                                time: moment(docs0[0].info.joinedAt).format("hh:mm a"),
-                                                                date: moment(docs0[0].info.joinedAt).format("Do MMMM YYYY"),
-                                                            },
-                                                            formatted: {
-                                                                short: flip.tools.gen.tDef(moment(docs0[0].info.joinedAt).local().fromNow()),
-                                                                long: moment(docs0[0].info.joinedAt).local().fromNow()
-                                                            }
-                                                        },
+                                                        // time: {
+                                                        //     date: {
+                                                        //         time: moment(docs0[0].info.joinedAt).format("hh:mm a"),
+                                                        //         date: moment(docs0[0].info.joinedAt).format("Do MMMM YYYY"),
+                                                        //     },
+                                                        //     formatted: {
+                                                        //         short: flip.tools.gen.tDef(moment(docs0[0].info.joinedAt).local().fromNow()),
+                                                        //         long: moment(docs0[0].info.joinedAt).local().fromNow()
+                                                        //     }
+                                                        // },
                                                         meta: {
                                                             type: "user",
                                                             isFollowing: isFollowing,
@@ -1959,7 +1959,19 @@ const flip = {
                     if(docs0.length > 0) {
                         if(bcrypt.compareSync(password, docs0[0].security.password)) {
                             if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
-                                let token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].security.sessionID);
+                                let newSessionID = flip.tools.gen.sessionID();
+
+                                db.users.update({
+                                    "info.clientID": docs0[0].info.clientID
+                                }, {
+                                    $set: {
+                                        "security.sessionID": newSessionID,
+                                        "session.isLoggedIn": true,
+                                        "session.lastLoggedInAt": Date.now()
+                                    }
+                                })
+
+                                let token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
 
                                 callback({
                                     response: "OK",
@@ -2411,13 +2423,13 @@ const flip = {
                                                             postedBy: cDoc.info.postedBy,
                                                             postedAt: cDoc.info.postedAt,
                                                             time: {
-                                                                date: {
-                                                                    time: moment(cDoc.info.postedAt).format("hh:mm a"),
-                                                                    date: moment(cDoc.info.postedAt).format("Do MMMM YYYY"),
-                                                                },
+                                                                // date: {
+                                                                //     time: moment(cDoc.info.postedAt).format("hh:mm a"),
+                                                                //     date: moment(cDoc.info.postedAt).format("Do MMMM YYYY"),
+                                                                // },
                                                                 formatted: {
                                                                     short: flip.tools.gen.tDef(moment(cDoc.info.postedAt).local().fromNow()),
-                                                                    long: moment(cDoc.info.postedAt).local().fromNow()
+                                                                    // long: moment(cDoc.info.postedAt).local().fromNow()
                                                                 }
                                                             },
                                                             meta: {

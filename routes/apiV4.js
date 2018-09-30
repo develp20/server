@@ -56,20 +56,37 @@ module.exports = function(flip) {
         })
     });
 
-    app.get("/user/profile/:clientID", (req, res) => {
-        let clientID = req.params.clientID;
+    app.get("/user/:clientID/profile", (req, res) => {
+        let type = req.query.type;
 
-        if(clientID) {
-            if(flip.tools.validate.clientID(clientID)) {
+        let clientID = req.params.clientID;
+        let username = req.params.clientID;
+
+        if(clientID || username) {
+            if(flip.tools.validate.clientID(clientID) || flip.tools.validate.username(username)) {
                 flip.auth(req, function(auth) {
                     if(auth.response == "OK") {
-                        flip.user.get.safe.clientID(clientID, auth.data.info.clientID, function(data0) {
-                            if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
-                            } else {
-                                res.status(data0.statusCode || 200).send(data0);
-                            }
-                        });
+                        console.log(type)
+                        if(type == "clientID") {
+                            flip.user.get.safe.clientID(clientID, auth.data.info.clientID, function(data0) {
+                                if(data0.response == "OK") {
+                                    res.status(data0.statusCode || 200).send(data0);
+                                } else {
+                                    res.status(data0.statusCode || 200).send(data0);
+                                }
+                            });
+                        } else if(type == "username") {
+                            flip.user.get.safe.username(username, auth.data.info.clientID, function(data0) {
+                                if(data0.response == "OK") {
+                                    res.status(data0.statusCode || 200).send(data0);
+                                } else {
+                                    res.status(data0.statusCode || 200).send(data0);
+                                }
+                            });
+                        } else {
+                            let err = flip.tools.res.INVALID_PARAMS;
+                            res.status(err.statusCode || 200).send(err);
+                        }
                     } else {
                         res.status(auth.statusCode || 200).send(auth);
                     }
@@ -222,7 +239,7 @@ module.exports = function(flip) {
 
 // /user/relationships/*
 
-    app.get("/user/relationships/:clientID", (req, res) => {
+    app.get("/user/:clientID/relationships", (req, res) => {
         let clientID = req.params.clientID;
         let index = req.query.index;
 
@@ -253,7 +270,7 @@ module.exports = function(flip) {
 
 // BLOCK
 
-    app.post("/user/block/create/:clientID", (req, res) => {
+    app.post("/user/:clientID/block/create/", (req, res) => {
         let clientID = req.params.clientID;
 
         if(clientID) {
@@ -285,7 +302,7 @@ module.exports = function(flip) {
         }
     })
 
-    app.post("/user/block/destroy/:clientID", (req, res) => {
+    app.post("/user/:clientID/block/destroy", (req, res) => {
         let clientID = req.params.clientID;
 
         if(clientID) {
@@ -319,7 +336,7 @@ module.exports = function(flip) {
 
 // BLOCK END
 
-    app.post("/user/relationship/create/:clientID", (req, res) => {
+    app.post("/user/:clientID/relationship/create", (req, res) => {
         let clientID = req.params.clientID;
 
         if(clientID) {
@@ -351,7 +368,7 @@ module.exports = function(flip) {
         }
     });
 
-    app.post("/user/relationship/destroy/:clientID", (req, res) => {
+    app.post("/user/:clientID/relationship/destroy", (req, res) => {
         let clientID = req.params.clientID;
 
         if(clientID) {
@@ -562,7 +579,7 @@ module.exports = function(flip) {
         }
     });
 
-    app.post("/post/:postID/bookmark/create", (req, res) => {
+    app.post("/post/:postID/bookmark/destroy", (req, res) => {
         let postID = req.params.postID;
 
         if(postID) {
@@ -1060,7 +1077,7 @@ module.exports = function(flip) {
         })
     })
 
-    app.get("/user/posts/:clientID", (req, res) => {
+    app.get("/user/:clientID/posts", (req, res) => {
         let clientID = req.params.clientID;
         let index = req.query.index;
 
@@ -1286,8 +1303,8 @@ module.exports = function(flip) {
         }
     })
 
-    app.post("/chat/thread/create", (req, res) => {
-        let clientID = req.body.clientID;
+    app.post("/chat/thread/:clientID/create", (req, res) => {
+        let clientID = req.params.clientID;
 
         if(clientID) {
             if(flip.tools.validate.clientID(clientID)) {
@@ -1312,8 +1329,8 @@ module.exports = function(flip) {
         }
     })
 
-    app.post("/chat/thread/destroy", (req, res) => {
-        let threadID = req.body.threadID;
+    app.post("/chat/thread/:threadID/destroy", (req, res) => {
+        let threadID = req.params.threadID;
 
         if(threadID) {
             if(flip.tools.validate.threadID(threadID)) {
@@ -1344,9 +1361,9 @@ module.exports = function(flip) {
         }
     });
 
-    app.post("/chat/thread/message/create", (req, res) => {
+    app.post("/chat/thread/:threadID/message/create", (req, res) => {
+        let threadID = req.params.threadID;
         let message = req.body.message;
-        let threadID = req.body.threadID;
 
         if(message && threadID) {
             if(flip.tools.validate.message(message) && flip.tools.validate.threadID(threadID)) {
@@ -1377,9 +1394,9 @@ module.exports = function(flip) {
         }
     })
 
-    app.post("/chat/thread/message/destroy", (req, res) => {
+    app.post("/chat/thread/:threadID/message/destroy", (req, res) => {
+        let threadID = req.params.threadID;
         let messageID = req.body.messageID;
-        let threadID = req.body.threadID;
 
         if(messageID && threadID) {
             if(flip.tools.validate.messageID(messageID) && flip.tools.validate.threadID(threadID)) {
