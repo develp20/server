@@ -121,6 +121,9 @@ Array.prototype.clean = function(deleteValue) {
     return this;
 };
 
+//
+let FL_SCREENSHOTS_ENABLED = false;
+
 let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
 let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
 
@@ -168,7 +171,12 @@ const flip = {
                                             isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                             canUploadVideos: true,
                                             doesRequireWatermarkOnExport: !(data0.data.info.username == "william"),
-                                            timeLimit: 7.5
+                                            timeLimit: 7.5,
+                                            server: {
+                                                BASE_URL: "https://nuyr.io",
+                                                BASE_API_URL: "https://api.flip.wtf/v4/",
+                                                BASE_SOCKET_URL: "https://api.flip.wtf/"
+                                            }
                                         }
 
                                         console.log(data0.data.info.username.toLowerCase() + " just made a request")
@@ -387,19 +395,23 @@ const flip = {
     },
     explore: {
         latestID: function(callback) {
-            db.explore.find({}).sort({
-                "info.feedCreatedAt": -1
-            }).limit(1, function(err0, docs0) {
-                if(!err0) {
-                    if(docs0.length > 0) {
-                        callback(docs0[0].info.feedID);
+            if(FL_SCREENSHOTS_ENABLED) {
+                callback("testt");
+            } else {
+                db.explore.find({}).sort({
+                    "info.feedCreatedAt": -1
+                }).limit(1, function(err0, docs0) {
+                    if(!err0) {
+                        if(docs0.length > 0) {
+                            callback(docs0[0].info.feedID);
+                        } else {
+                            callback("");
+                        }
                     } else {
                         callback("");
                     }
-                } else {
-                    callback("");
-                }
-            });
+                });
+            }
         },
         create: {
             feed: function(callback) {
@@ -927,7 +939,7 @@ const flip = {
                     if(!err0) {
                         if(docs0.length > 0) {
                             // if(true) {
-                            if(docs0[0].info.feedCreatedAt > (Date.now() - (86400000 * 7))) {
+                            if(docs0[0].info.feedCreatedAt > (Date.now() - (86400000 * 7)) || FL_SCREENSHOTS_ENABLED) {
                                 var exploreLimit = 10
                                 var exploreData = docs0[0].data
 
@@ -2230,12 +2242,56 @@ const flip = {
                 "data.usesLast24h": 1
             }).limit(15, function(err0, docs0) {
                 if(!err0) {
-                    if(docs0.length > 0) {
+                    if(docs0.length > 0 || FL_SCREENSHOTS_ENABLED) {
                         var processed = docs0.length;
 
+                        let apsHashtags = [
+                            {
+                                info: {},
+                                data: {
+                                    hashtag: "funny",
+                                    posts: "9.7k"
+                                }
+                            },
+                            {
+                                info: {},
+                                data: {
+                                    hashtag: "cats",
+                                    posts: "6.9k"
+                                }
+                            },
+                            {
+                                info: {},
+                                data: {
+                                    hashtag: "oldvine",
+                                    posts: "5.3k"
+                                }
+                            },
+                            {
+                                info: {},
+                                data: {
+                                    hashtag: "dbz",
+                                    posts: "420"
+                                }
+                            },
+                            {
+                                info: {},
+                                data: {
+                                    hashtag: "dbz",
+                                    posts: ""
+                                }
+                            }
+                        ]
+
+                        if(docs0.length == 0 && FL_SCREENSHOTS_ENABLED) {
+                            processed = apsHashtags.length;
+                            docs0 = apsHashtags;
+                        }
+
                         for(i = 0; i < docs0.length; i++) {
-                            // docs0[i].data.hashtag = docs0[i].data.hashtag.toUpperCase();
-                            docs0[i].data.posts = docs0[i].data.uses.last24h + ""
+                            if(!FL_SCREENSHOTS_ENABLED) {
+                                docs0[i].data.posts = docs0[i].data.uses.last24h + ""
+                            }
 
                             delete docs0[i]._id;
 
@@ -2473,10 +2529,18 @@ const flip = {
                                                             docs[i] = null
                                                         }
 
-                                                        if(cDoc.info.postID == "qFYQHBytxr") {
+                                                        if(FL_SCREENSHOTS_ENABLED) {
                                                             cDoc.data.stats.formatted.views = "1.2k"
                                                             cDoc.data.stats.formatted.likes = "759"
                                                             cDoc.data.stats.formatted.comments = "249"
+
+                                                            if(i == 0 && cDoc.info.postID == "pvhr2SJv6w") {
+                                                                cDoc.info.time.formatted.short = "39m"
+                                                            } else if(i == 1) {
+                                                                cDoc.info.time.formatted.short = "2h"
+                                                            } else if(i == 0) {
+                                                                cDoc.info.time.formatted.short = "4h"
+                                                            }
                                                         }
 
                                                         dataCount--;
@@ -3046,13 +3110,30 @@ const flip = {
                         var following = docs0[0].profile.following;
                         following.push(docs0[0].info.clientID);
 
-                        db.posts.find({
+                        var query = {
                             "info.postedBy": {
                                 $in: following
                             }
-                        }).sort({
+                        }, timeQuery = {
                             "info.postedAt": -1
-                        }).skip(parseInt(index)).limit(10, function(err1, docs1) {
+                        };
+
+                        if(FL_SCREENSHOTS_ENABLED) {
+                            query = {
+                                $or: [
+                                    {
+                                        "info.postID": "gQwuJL7upJ"
+                                    },
+                                    {
+                                        "info.postID": "pvhr2SJv6w"
+                                    }
+                                ]
+                            };
+
+                            timeQuery = {};
+                        }
+
+                        db.posts.find(query).sort(timeQuery).skip(parseInt(index)).limit(10, function(err1, docs1) {
                             if(!err1) {
                                 if(docs1.length > 0) {
                                     flip.post.multi.handle(docs1, clientID, function(docs2) {

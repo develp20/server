@@ -66,7 +66,6 @@ module.exports = function(flip) {
             if(flip.tools.validate.clientID(clientID) || flip.tools.validate.username(username)) {
                 flip.auth(req, function(auth) {
                     if(auth.response == "OK") {
-                        console.log(type)
                         if(type == "clientID") {
                             flip.user.get.safe.clientID(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
