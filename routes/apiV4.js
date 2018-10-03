@@ -1,5 +1,4 @@
 module.exports = function(flip) {
-    // EXPRESS
     let app = require("express")();
 
     let ffmpegInstaller = require("@ffmpeg-installer/ffmpeg");
@@ -634,6 +633,7 @@ module.exports = function(flip) {
         }
     })
 
+    // DEPRECATED
 
     app.get("/post/stream/:vID", (req, res) => {
         var vID = req.params.vID;
@@ -660,6 +660,8 @@ module.exports = function(flip) {
             fs.createReadStream(path).pipe(res);
         }
     });
+
+    // DEPRECATED
 
     app.get("/post/thumb/:tID", (req, res) => {
         var tID = req.params.tID;

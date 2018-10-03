@@ -50,9 +50,6 @@ module.exports = function(io) {
 
     ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
-    // VALIDATOR
-    let validator = require("validator");
-
     // MOMENT
     let moment = require("moment");
 

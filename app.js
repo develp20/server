@@ -15,9 +15,9 @@ let fileUpload = require("express-fileupload");
 let RateLimit = require("express-rate-limit");
  
 let limiter = new RateLimit({
-    windowMs: 1000 * 60 * 5, // 1 minute
-    max: 180, // limit each IP to 75 requests per windowMs
-    delayMs: 0, // disable delaying - full speed until the max limit is reached
+    windowMs: 1000 * 60 * 5,
+    max: 180,
+    delayMs: 0,
     message: {
         response: "RATE_LIMIT_REACHED",
         formattedTitle: "Rate Limit Reached",
@@ -49,7 +49,6 @@ app.use("/api/v4/", v4);
 app.use("/api/v4/admin/", require("./routes/admin.js"));
 
 app.get("/api/", (req, res) => {
-    // yeah suck it
     res.redirect("https://www.youtube.com/watch?v=-BzyCf0pjUA");
 });
 
@@ -62,25 +61,6 @@ io.on("connection", function(socket) {
         flip.chat.FL_LIVE_TYPING_KEYS[socket.id] = threadData.threadLiveTypingKey
         flip.chat.FL_LIVE_TYPING_USERS[socket.id] = threadData.clientID
     });
-
-    // socket.on("FL_CH_NEW_MESSAGE_SENT", function(data) {
-    //     if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
-    //         let liveTypingData = {
-    //             info: {
-    //                 messageID: "",
-    //                 messageSentAt: Date.now(),
-    //                 messageLastUpdatedAt: Date.now(),
-    //                 messageSentAgo: "just now",
-    //                 messageSentBy: flip.chat.FL_LIVE_TYPING_USERS[socket.id]
-    //             },
-    //             data: {
-    //                 content: data.content.trim()
-    //             }
-    //         };
-
-    //         io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_NEW_MESSAGE_SENT", liveTypingData)
-    //     }
-    // })
 
     socket.on("FL_CH_LT_DID_TYPING_OCCUR", function(data) {
         if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {

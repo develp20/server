@@ -54,9 +54,6 @@ let ffmpeg = require("fluent-ffmpeg");
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
-// VALIDATOR
-let validator = require("validator");
-
 // MOMENT
 let moment = require("moment");
 
@@ -238,6 +235,8 @@ let flip = {
                                 clientIDs.splice(i, 0, docs0[i].info.clientID)
 
                                 if(i == docs0.length - 1) {
+                                    clientIDs = clientIDs.reverse();
+                                    
                                     flip.user.get.multi.minified(clientIDs, 0, clientID, function(data0) {
                                         callback(data0)
                                     })
