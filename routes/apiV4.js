@@ -1485,5 +1485,5 @@ module.exports = function(flip) {
         }
     });
 
-    return app
+    return app;
 }

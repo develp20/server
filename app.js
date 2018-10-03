@@ -35,7 +35,11 @@ app.use(limiter);
 
 app.enable("trust proxy");
 
-const flip = require("./FLKit/FLKit.js");
+let http = require("http");
+let server = http.createServer(app);
+let io = require("socket.io")(server);
+
+const flip = require("./FLKit/FLKit.js")(io);
 
 const v3 = require("./routes/apiV3.js");
 const v4 = require("./routes/apiV4.js")(flip);
@@ -44,11 +48,10 @@ app.use("/api/v3/", v3);
 app.use("/api/v4/", v4);
 app.use("/api/v4/admin/", require("./routes/admin.js"));
 
-let http = require("http");
-let server = http.createServer(app);
-let io = require("socket.io")(server);
-
-flip.io = io;
+app.get("/api/", (req, res) => {
+    // yeah suck it
+    res.redirect("https://www.youtube.com/watch?v=-BzyCf0pjUA");
+});
 
 io.on("connection", function(socket) {
     console.log("A user connected");
@@ -60,25 +63,24 @@ io.on("connection", function(socket) {
         flip.chat.FL_LIVE_TYPING_USERS[socket.id] = threadData.clientID
     });
 
-    socket.on("FL_CH_NEW_MESSAGE_SENT", function(data) {
-        console.log(datas)
-        if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
-            let liveTypingData = {
-                info: {
-                    messageID: "",
-                    messageSentAt: Date.now(),
-                    messageLastUpdatedAt: Date.now(),
-                    messageSentAgo: "just now",
-                    messageSentBy: flip.chat.FL_LIVE_TYPING_USERS[socket.id]
-                },
-                data: {
-                    content: data.content.trim()
-                }
-            };
+    // socket.on("FL_CH_NEW_MESSAGE_SENT", function(data) {
+    //     if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
+    //         let liveTypingData = {
+    //             info: {
+    //                 messageID: "",
+    //                 messageSentAt: Date.now(),
+    //                 messageLastUpdatedAt: Date.now(),
+    //                 messageSentAgo: "just now",
+    //                 messageSentBy: flip.chat.FL_LIVE_TYPING_USERS[socket.id]
+    //             },
+    //             data: {
+    //                 content: data.content.trim()
+    //             }
+    //         };
 
-            io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_NEW_MESSAGE_SENT", liveTypingData)
-        }
-    })
+    //         io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_NEW_MESSAGE_SENT", liveTypingData)
+    //     }
+    // })
 
     socket.on("FL_CH_LT_DID_TYPING_OCCUR", function(data) {
         if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {

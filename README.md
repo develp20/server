@@ -12,4 +12,4 @@ flip is a video sharing app, sort of like Vine, but a lot faster paced (it's qui
 
 ## Do I need anything else for this to work?
 
-Probably not, but you may need a copy of the flip Server, see https://github.com/williamsthing/flip-Server. change the URL in flip.swift under the 'flStore' struct: `static let BASE_API_URL: String = (YOUR URL)`. 
+Probably not, but you may need a copy of the flip iOS App, see https://github.com/williamsthing/flip-iOS. change the URL in flip/flip.swift under the 'flStore' struct: `static let BASE_API_URL: String = (YOUR URL)`. 
