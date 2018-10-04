@@ -4,10 +4,15 @@ module.exports = function(flip) {
     let ffmpegInstaller = require("@ffmpeg-installer/ffmpeg");
     let ffmpeg = require("fluent-ffmpeg");
 
-    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+    var AWS = require("aws-sdk");
 
-    let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
-    let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
+    var s3  = new AWS.S3({
+      accessKeyId: process.env.BUCKETEER_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY,
+      region: process.env.BUCKETEER_AWS_REGION,
+    });
+
+    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
     let fs = require("fs");
 
@@ -331,8 +336,6 @@ module.exports = function(flip) {
             res.status(err.statusCode || 200).send(err);
         }
     })
-
-// BLOCK END
 
     app.post("/user/:clientID/relationship/create", (req, res) => {
         let clientID = req.params.clientID;
@@ -702,37 +705,44 @@ module.exports = function(flip) {
     })
 
     app.post("/post/upload", (req, res) => {
-        let vid = req.files.flipVid;
-        let wasUploaded = req.body.uploadedFromCameraRoll;
+        if(typeof req.files !== "undefined") {
+            let vid = req.files.flipVid;
+            let wasUploaded = req.body.uploadedFromCameraRoll;
 
-        if(vid && wasUploaded) {
-            flip.auth(req, function(auth) {
-                if(auth.response == "OK") {
-                    flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
-                        if(data0.response == "OK") {
-                            vid.mv(FL_VIDEO_PATH + data0.data.postID + ".mov", function(err) {
-                                if(!err) {
-                                    new ffmpeg(FL_VIDEO_PATH + data0.data.postID + ".mov").screenshots({
-                                        timestamps: [ 0 ],
-                                        filename: data0.data.postID + ".png",
-                                        folder: FL_THUMB_PATH
-                                    });
-
-                                    res.send({
-                                        response: "OK"
-                                    });
-                                } else {
-                                    res.send(flip.tools.res.ERR);
-                                }
-                            });
-                        } else {
-                            res.status(data0.statusCode || 200).send(data0)
-                        }
-                    });
-                } else {
-                    res.status(auth.statusCode || 200).send(auth);
-                }
-            });
+            if(vid && wasUploaded) {
+                flip.auth(req, function(auth) {
+                    if(auth.response == "OK") {
+                        flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
+                            if(data0.response == "OK") {
+                                let params = {
+                                    Key: data0.data.postID,
+                                    Bucket: process.env.BUCKETEER_BUCKET_NAME,
+                                    Body: vid.data
+                                };
+                                
+                                s3.putObject(params, function(err1, data1) {
+                                    if(err1) {
+                                        let err = flip.tools.res.ERR;
+                                        res.statusCode(err.statusCode).send(status);
+                                    } else {
+                                        res.send({
+                                            response: "OK",
+                                            statusCode: 200
+                                        });
+                                    }
+                                });
+                            } else {
+                                res.status(data0.statusCode || 200).send(data0)
+                            }
+                        });
+                    } else {
+                        res.status(auth.statusCode || 200).send(auth);
+                    }
+                });
+            } else {
+                let err = flip.tools.res.INSUFFICIANT_PARAMS;
+                res.status(err.statusCode || 200).send(err);
+            }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
             res.status(err.statusCode || 200).send(err);

@@ -41,10 +41,18 @@ let io = require("socket.io")(server);
 
 const flip = require("./FLKit/FLKit.js")(io);
 
-const v3 = require("./routes/apiV3.js");
+// const v3 = require("./routes/apiV3.js");
 const v4 = require("./routes/apiV4.js")(flip);
 
-app.use("/api/v3/", v3);
+// app.use("/api/v3/", v3);
+app.post("/api/v3/", (req, res) => {
+    res.send({
+        response: "DEPRECATED",
+        formattedTitle: "Version Depricated",
+        formattedResponse: "This version of the app has been discontinued. Please upgrade to the latest version through the App Store."
+    })
+});
+
 app.use("/api/v4/", v4);
 app.use("/api/v4/admin/", require("./routes/admin.js"));
 
@@ -81,13 +89,13 @@ io.on("connection", function(socket) {
                 }
             };
 
-            console.log(data.content.trim());
-
             io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_LT_DID_TYPING_OCCUR", liveTypingData)
         }
     });
 
     socket.on("disconnect", function() {
+        console.log("A user disconnected");
+
         delete flip.chat.FL_LIVE_TYPING_USERS[socket.id]
         delete flip.chat.FL_LIVE_TYPING_KEYS[socket.id]
     })

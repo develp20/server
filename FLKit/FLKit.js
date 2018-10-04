@@ -17,7 +17,7 @@ module.exports = function(io) {
         "GEcohc2jzFq9Xs5", // reed
         "nO8SeseASez3zpn", // noah
         "ZayZNBxo26bQRPI", // 3raxton
-        "GRsVOxSLadGeUgX" // amrith
+        "GRsVOxSLadGeUgX"  // amrith
     ];
 
     // TIMED OUT USERS
@@ -31,10 +31,20 @@ module.exports = function(io) {
 
     // DATABASE CONFIG
     let dbConfig = require("../config/config.json");
-
+    
     // MONGO JS
     let mongojs = require("mongojs")
-    let db = mongojs(dbConfig.mDB, [ "users", "posts", "chat", "reservations", "featured", "reports", "hashtags", "bookmarks", "notifications" ])
+    let db = mongojs(process.env.MONGODB_URI, [
+        "users",
+        "posts",
+        "chat",
+        "reservations",
+        "featured",
+        "reports",
+        "hashtags",
+        "bookmarks",
+        "notifications"
+    ]);
 
     // BCRYPT
     let bcrypt = require("bcryptjs");
