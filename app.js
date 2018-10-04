@@ -48,6 +48,10 @@ app.use("/api/v3/", v3);
 app.use("/api/v4/", v4);
 app.use("/api/v4/admin/", require("./routes/admin.js"));
 
+app.get("/", (req, res) => {
+    res.redirect("/api/");
+});
+
 app.get("/api/", (req, res) => {
     res.redirect("https://www.youtube.com/watch?v=-BzyCf0pjUA");
 });
@@ -89,6 +93,8 @@ io.on("connection", function(socket) {
     })
 });
 
-server.listen(4000, function() {
-    console.log("Listening on :4000");
+let port = process.env.PORT || 3000;
+
+server.listen(port, function() {
+    console.log("Listening on :" + port);
 });
