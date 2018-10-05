@@ -1,4 +1,4 @@
-module.exports = function(io) {
+module.exports = function(io, s3) {
     // PROHIBITED USERNAMES
     let prohibitedUsers = [
         "7Gqertfaqdgo1wN", //BabyMarina
@@ -34,8 +34,8 @@ module.exports = function(io) {
     
     // MONGO JS
     let mongojs = require("mongojs")
-    // process.env.MONGODB_URI
-    let db = mongojs(dbConfig.mDB, [
+
+    let db = mongojs(process.env.MONGODB_URI, [
         "users",
         "posts",
         "chat",
@@ -69,7 +69,7 @@ module.exports = function(io) {
 
     // SENDGRID
     let sgMail = require("@sendgrid/mail");
-    sgMail.setApiKey(dbConfig.sgKey);
+    sgMail.setApiKey(process.env.SG_KEY);
 
     // TWIT
     let Twit = require("twit");
@@ -130,19 +130,14 @@ module.exports = function(io) {
         return this;
     };
 
-    //
     let FL_SCREENSHOTS_ENABLED = false;
 
-    let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
-    let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
-
     const flip = {
-        io: null,
         auth: function(req, callback) {
             let token = req.headers["authorization"];
 
             if(token) {
-                jwt.verify(token, dbConfig.jwt.secret, function(err0, decoded) {
+                jwt.verify(token, process.env.JWT, function(err0, decoded) {
                     if(!err0) {
                         let clientID = decoded.clientID;
                         let sessionID = decoded.sessionID;
@@ -996,7 +991,7 @@ module.exports = function(io) {
                     let token = jwt.sign({
                         clientID: clientID,
                         sessionID: sessionID
-                    }, dbConfig.jwt.secret);
+                    }, process.env.JWT);
 
                     return token
                 },
@@ -3099,16 +3094,22 @@ module.exports = function(io) {
                                         ]
                                     }, multi);
 
-                                    fs.unlink(FL_VIDEO_PATH + postID + ".mov", (err) => {
-                                        if(!err) {
-                                            // deleted successfully
-                                        }
-                                    });
+                                    let params = {
+                                        Bucket: process.env.BUCKETEER_BUCKET_NAME, 
+                                        Delete: {
+                                            Objects: [
+                                                {
+                                                    Key: "public/videos/" + postID + ".mov"
+                                                },
+                                                {
+                                                    Key:  "public/thumbnails/" + postID + ".png" 
+                                                }
+                                            ],
+                                        },
+                                    };
 
-                                    fs.unlink(FL_THUMB_PATH + postID + ".png", (err) => {
-                                        if(!err) {
-                                            // deleted successfully
-                                        }
+                                    s3.deleteObjects(params, function(err2, data2) {
+                                        console.log(err2, data2)
                                     });
                                 } else {
                                     callback(flip.tools.res.ERR);
