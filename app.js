@@ -58,7 +58,7 @@ const flip = require("./FLKit/FLKit.js")(io, s3);
 
 const v4 = require("./routes/apiV4.js")(flip, s3);
 
-app.post("/api/v3/", (req, res) => {
+app.post("/v3/", (req, res) => {
     res.send({
         response: "DEPRECATED",
         formattedTitle: "Version Depricated",
@@ -66,8 +66,8 @@ app.post("/api/v3/", (req, res) => {
     })
 });
 
-app.use("/api/v4/", v4);
-app.use("/api/v4/admin/", require("./routes/admin.js"));
+app.use("/v4/", v4);
+app.use("/v4/admin/", require("./routes/admin.js"));
 
 io.on("connection", function(socket) {
     socket.on("FL_CH_SUBSCRIBE_TO_THREAD", function(threadData) {
