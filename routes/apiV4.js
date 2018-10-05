@@ -785,7 +785,9 @@ module.exports = function(flip, s3) {
                         cleanup(processingID);
                     }
                 } else {
-                    
+                    // Create the appropeate error and callback
+                    let err = flip.tools.res.ERR;
+                    res.status(err.statusCode).send(err);
                 }
             });
         } else {
