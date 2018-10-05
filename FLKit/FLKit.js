@@ -1979,19 +1979,25 @@ module.exports = function(io, s3) {
                         if(docs0.length > 0) {
                             if(bcrypt.compareSync(password, docs0[0].security.password)) {
                                 if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
-                                    let newSessionID = flip.tools.gen.sessionID();
+                                    var token;
 
-                                    db.users.update({
-                                        "info.clientID": docs0[0].info.clientID
-                                    }, {
-                                        $set: {
-                                            "security.sessionID": newSessionID,
-                                            "session.isLoggedIn": true,
-                                            "session.lastLoggedInAt": Date.now()
-                                        }
-                                    })
+                                    if(process.env.NODE_ENV == "production") {
+                                        let newSessionID = flip.tools.gen.sessionID();
 
-                                    let token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
+                                        db.users.update({
+                                            "info.clientID": docs0[0].info.clientID
+                                        }, {
+                                            $set: {
+                                                "security.sessionID": newSessionID,
+                                                "session.isLoggedIn": true,
+                                                "session.lastLoggedInAt": Date.now()
+                                            }
+                                        })
+
+                                        token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
+                                    } else {
+                                        token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].info.sessionID);
+                                    }
 
                                     callback({
                                         response: "OK",
