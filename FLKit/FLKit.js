@@ -2523,8 +2523,8 @@ module.exports = function(io, s3) {
 
                                                             // s3 migration timestamp
                                                             if(cDoc.info.postedAt >= 1538706511013) {
-                                                                streamURL = "https://" + bucketName + ".s3.amazonaws.com/public/" + cDoc.info.postID + ".mov";
-                                                                thumbURL = "https://" + bucketName + ".s3.amazonaws.com/public/" + cDoc.info.postID + ".png";
+                                                                streamURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/videos/" + cDoc.info.postID + ".mov";
+                                                                thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + cDoc.info.postID + ".png";
                                                             }
 
 
