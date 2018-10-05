@@ -9,9 +9,9 @@ module.exports = function(flip) {
     let FL_DEFAULT_STATUS = 200;
 
     var s3  = new AWS.S3({
-      accessKeyId: process.env.BUCKETEER_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY,
-      region: process.env.BUCKETEER_AWS_REGION,
+        accessKeyId: process.env.BUCKETEER_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY,
+        region: process.env.BUCKETEER_AWS_REGION
     });
 
     ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -711,31 +711,35 @@ module.exports = function(flip) {
             let vid = req.files.flipVid;
             let wasUploaded = req.body.uploadedFromCameraRoll;
 
+            console.log(vid)
+
             if(vid && wasUploaded) {
                 flip.auth(req, function(auth) {
                     if(auth.response == "OK") {
                         flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
                             if(data0.response == "OK") {
+                                let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
+                                console.log(videoExtension)
                                 // Setup parameters for S3 PUT request
                                 let vParams = {
-                                    Key: data0.data.postID,
-                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "-vid",
+                                    Key: data0.data.postID + "." + videoExtension,
+                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/videos",
                                     Body: vid.data
                                 }, sParams = {
-                                    Key: data0.data.postID + "-scr",
+                                    Key: data0.data.postID + ".png",
                                     Bucket: process.env.BUCKETEER_BUCKET_NAME,
                                     Body: "./../processing-scr/" + data0.data.postID + ".png"
                                 };
 
                                 // Create screenshots from ffmpeg
-                                new ffmpeg(vid.data).screenshots({
-                                    timestamps: [ 0 ],
-                                    filename: data0.data.postID + ".png",
-                                    folder: "./../processing-scr"
-                                });
+                                // new ffmpeg(vid.data).screenshots({
+                                //     timestamps: [ 0 ],
+                                //     filename: data0.data.postID + ".png",
+                                //     folder: "./../processing-scr"
+                                // });
                                 
                                 // Put screenshot update w/o callback
-                                s3.putObject(sParams);
+                                // s3.putObject(sParams);
                                 
                                 // Put video update w/ callback
                                 s3.putObject(vParams, function(err1, data1) {
@@ -743,12 +747,17 @@ module.exports = function(flip) {
                                     if(err1) {
                                         // Create the appropeate error and callback
                                         let err = flip.tools.res.ERR;
-                                        res.statusCode(err.statusCode).send(status);
+                                        res.status(err.statusCode).send(err);
+
+                                        console.log(err1)
                                     } else {
+                                        console.log(data1)
                                         // Callback with response OK
                                         res.send({
                                             response: "OK",
-                                            data: {},
+                                            data: {
+                                                postID: data0.data.postID
+                                            },
                                             statusCode: 200
                                         });
                                     }

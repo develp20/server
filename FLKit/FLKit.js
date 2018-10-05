@@ -34,7 +34,8 @@ module.exports = function(io) {
     
     // MONGO JS
     let mongojs = require("mongojs")
-    let db = mongojs(process.env.MONGODB_URI, [
+    // process.env.MONGODB_URI
+    let db = mongojs(dbConfig.mDB, [
         "users",
         "posts",
         "chat",
@@ -2514,12 +2515,22 @@ module.exports = function(io) {
                                                                 }
                                                             }
 
+                                                            var streamURL = "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
+                                                                thumbURL = "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png";
+
+                                                            let bucketName = process.env.BUCKETEER_BUCKET_NAME;
+
+                                                            // s3 migration timestamp
+                                                            if(cDoc.info.postedAt >= 1538706511013) {
+                                                                streamURL = "https://" + bucketName + ".s3.amazonaws.com/public/" + cDoc.info.postID + ".mov";
+                                                                thumbURL = "https://" + bucketName + ".s3.amazonaws.com/public/" + cDoc.info.postID + ".png";
+                                                            }
+
 
                                                             cDoc.data = {
                                                                 caption: cDoc.data.caption,
-                                                                streamURL: "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
-                                                                // streamURL: "https://api.flip.wtf/v3/post/stream/" + cDoc.info.postID,
-                                                                thumbURL: "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png",
+                                                                streamURL: streamURL,
+                                                                thumbURL: thumbURL,
                                                                 stats: {
                                                                     formatted: {
                                                                         views: shortNumber(Math.round(cDoc.data.stats.raw.views)) + "",
