@@ -4060,7 +4060,7 @@ module.exports = function(io, s3) {
                     response: "NO_ITEMS",
                     formattedTitle: "No Items Found",
                     formattedResponse: "Your query returned no items. Please adjust your query and try again.",
-                    statusCode: 204
+                    statusCode: 200
                 },
                 NO_DATA: {
                     response: "OK",
@@ -4068,7 +4068,7 @@ module.exports = function(io, s3) {
                     meta: {
                         hasGotMoreItems: false
                     },
-                    statusCode: 204
+                    statusCode: 200
                 },
                 SERVICE_UNKNOWN: {
                     response: "SERVICE_UNKNOWN",
