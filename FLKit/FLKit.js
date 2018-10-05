@@ -165,6 +165,8 @@ module.exports = function(io) {
                                                 }
                                             }
 
+                                            let username = data0.data.info.username;
+
                                             var privileges = {
                                                 isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                                 canUploadVideos: true,
@@ -177,8 +179,13 @@ module.exports = function(io) {
                                                 }
                                             }
 
-                                            if(data0.data.info.username == "fran") {
+                                            if(username == "fran") {
                                                 privileges.timeLimit = 30;
+                                            }
+
+                                            if(username == "william" || username == "reed") {
+                                                privileges.server.BASE_API_URL = "https://flip-staging.herokuapp.com/v4/";
+                                                privileges.server.BASE_SOCKET_URL = "https://flip-staging.herokuapp.com";
                                             }
 
                                             console.log(data0.data.info.username.toLowerCase() + " just made a request")

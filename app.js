@@ -1,12 +1,10 @@
 var express = require("express");
 var cookieParser = require("cookie-parser");
 let logger = require("morgan");
-let bodyParser = require("body-parser");
 
 var app = express();
 
 let cors = require("cors");
-
 app.use(cors({
     origin: "https://admin.flip.wtf"
 }));
@@ -44,15 +42,11 @@ const flip = require("./FLKit/FLKit.js")(io);
 const v3 = require("./routes/apiV3.js");
 const v4 = require("./routes/apiV4.js")(flip);
 
-app.use("/api/v3/", v3);
-app.use("/api/v4/", v4);
-app.use("/api/v4/admin/", require("./routes/admin.js"));
+app.use("/v3/", v3);
+app.use("/v4/", v4);
+app.use("/v4/admin/", require("./routes/admin.js"));
 
 app.get("/", (req, res) => {
-    res.redirect("/api/");
-});
-
-app.get("/api/", (req, res) => {
     res.redirect("https://www.youtube.com/watch?v=-BzyCf0pjUA");
 });
 
@@ -81,8 +75,6 @@ io.on("connection", function(socket) {
                 }
             };
 
-            console.log(data.content.trim());
-
             io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_LT_DID_TYPING_OCCUR", liveTypingData)
         }
     });
@@ -95,6 +87,4 @@ io.on("connection", function(socket) {
 
 let port = process.env.PORT || 3000;
 
-server.listen(port, function() {
-    console.log("Listening on :" + port);
-});
+server.listen(port, function(){ console.log("Listening on :" + port); });
