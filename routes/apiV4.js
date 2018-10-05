@@ -719,53 +719,57 @@ module.exports = function(flip, s3) {
                         filename: processingID + ".png",
                         folder: "./processing/scr"
                     });
-                    
+
                     if(vid && wasUploaded) {
                         flip.auth(req, function(auth) {
                             if(auth.response == "OK") {
                                 flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
                                     if(data0.response == "OK") {
-                                        let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
-        
-                                        // Setup parameters for S3 PUT request
-                                        let vParams = {
-                                            Key: data0.data.postID + "." + videoExtension,
-                                            Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/videos",
-                                            Body: "./processing/vid/" + processingID + ".mov"
-                                        }, sParams = {
-                                            Key: data0.data.postID + ".png",
-                                            Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/thumbnails",
-                                            Body: "./processing/scr/" + processingID + ".png"
-                                        };
-                                        
-                                        // Put screenshot update w/o callback
-                                        s3.putObject(sParams, function(err1, data1) {
-                                            console.log(err1, data1)
-                                        });
-                                        
-                                        // Put video update w/ callback
-                                        s3.putObject(vParams, function(err1, data1) {
-                                            // If an error occured
-                                            if(err1) {
-                                                console.log(err1)
-                                                // Create the appropeate error and callback
-                                                let err = flip.tools.res.ERR;
-                                                res.status(err.statusCode).send(err);
-        
-                                                cleanup(processingID);
-                                            } else {
-                                                // Callback with response OK
-                                                res.send({
-                                                    response: "OK",
-                                                    data: {
-                                                        postID: data0.data.postID
-                                                    },
-                                                    statusCode: 200
+                                        fs.readFile("./processing/scr/" + processingID + ".png", function(err1, data1) {
+                                            if(!err1) {
+                                                let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
+                
+                                                // Setup parameters for S3 PUT request
+                                                let vParams = {
+                                                    Key: data0.data.postID + "." + videoExtension,
+                                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/videos",
+                                                    Body: vid.data
+                                                }, sParams = {
+                                                    Key: data0.data.postID + ".png",
+                                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/thumbnails",
+                                                    Body: data1
+                                                };
+                                                
+                                                // Put screenshot update w/o callback
+                                                s3.putObject(sParams);
+                                                
+                                                // Put video update w/ callback
+                                                s3.putObject(vParams, function(err2, data2) {
+                                                    // If an error occured
+                                                    if(err2) {
+                                                        // Create the appropeate error and callback
+                                                        let err = flip.tools.res.ERR;
+                                                        res.status(err.statusCode).send(err);
+                
+                                                        cleanup(processingID);
+                                                    } else {
+                                                        // Callback with response OK
+                                                        res.send({
+                                                            response: "OK",
+                                                            data: {
+                                                                postID: data0.data.postID
+                                                            },
+                                                            statusCode: 200
+                                                        });
+                
+                                                        cleanup(processingID);
+                                                    }
                                                 });
-        
-                                                cleanup(processingID);
+                                            } else {
+                                                let err = flip.tools.res.INSUFFICIANT_PARAMS;
+                                                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
                                             }
-                                        });
+                                        })
                                     } else {
                                         res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
         

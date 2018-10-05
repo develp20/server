@@ -2527,7 +2527,6 @@ module.exports = function(io, s3) {
                                                                 thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + cDoc.info.postID + ".png";
                                                             }
 
-
                                                             cDoc.data = {
                                                                 caption: cDoc.data.caption,
                                                                 streamURL: streamURL,
