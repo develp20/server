@@ -787,7 +787,13 @@ module.exports = function(flip, s3) {
                 } else {
                     // Create the appropeate error and callback
                     let err = flip.tools.res.ERR;
-                    res.status(err.statusCode).send(err);
+                    res.status(err.statusCode).send({
+                        response: err.response,
+                        formattedTitle: err.formattedTitle,
+                        formattedResponse: err.formattedResponse,
+                        data: mvErr,
+                        statusCode: err.statusCode
+                    });
                 }
             });
         } else {
