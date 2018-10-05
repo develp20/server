@@ -706,6 +706,11 @@ module.exports = function(flip) {
         }
     })
 
+    function cleanup(processingID) {
+        fs.unlink("./processing-vid/" + processingID + ".mov", (err) => {});
+        fs.unlink("./processing-scr/" + processingID + ".png", (err) => {});
+    }
+
     app.post("/post/upload", (req, res) => {
         if(typeof req.files !== "undefined") {
             let vid = req.files.flipVid;
@@ -713,33 +718,37 @@ module.exports = function(flip) {
 
             console.log(vid)
 
+            let processingID = flip.tools.gen.randomString(5);
+
+            vid.mv("./processing/vid/" + processingID + ".mov");
+
+            // Create screenshots from ffmpeg
+            new ffmpeg("./processing/vid/" + processingID + ".mov").screenshots({
+                timestamps: [ 0 ],
+                filename: processingID + ".png",
+                folder: "./processing/scr"
+            });
+
             if(vid && wasUploaded) {
                 flip.auth(req, function(auth) {
                     if(auth.response == "OK") {
                         flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
                             if(data0.response == "OK") {
                                 let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
-                                console.log(videoExtension)
+
                                 // Setup parameters for S3 PUT request
                                 let vParams = {
                                     Key: data0.data.postID + "." + videoExtension,
                                     Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/videos",
-                                    Body: vid.data
+                                    Body: "./processing/vid/" + processingID + ".mov"
                                 }, sParams = {
                                     Key: data0.data.postID + ".png",
-                                    Bucket: process.env.BUCKETEER_BUCKET_NAME,
-                                    Body: "./../processing-scr/" + data0.data.postID + ".png"
+                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/thumbnails",
+                                    Body: "./processing/scr/" + processingID + ".png"
                                 };
-
-                                // Create screenshots from ffmpeg
-                                // new ffmpeg(vid.data).screenshots({
-                                //     timestamps: [ 0 ],
-                                //     filename: data0.data.postID + ".png",
-                                //     folder: "./../processing-scr"
-                                // });
                                 
                                 // Put screenshot update w/o callback
-                                // s3.putObject(sParams);
+                                s3.putObject(sParams);
                                 
                                 // Put video update w/ callback
                                 s3.putObject(vParams, function(err1, data1) {
@@ -749,9 +758,8 @@ module.exports = function(flip) {
                                         let err = flip.tools.res.ERR;
                                         res.status(err.statusCode).send(err);
 
-                                        console.log(err1)
+                                        cleanup(processingID);
                                     } else {
-                                        console.log(data1)
                                         // Callback with response OK
                                         res.send({
                                             response: "OK",
@@ -760,19 +768,27 @@ module.exports = function(flip) {
                                             },
                                             statusCode: 200
                                         });
+
+                                        cleanup(processingID);
                                     }
                                 });
                             } else {
-                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
+
+                                cleanup(processingID);
                             }
                         });
                     } else {
                         res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
+
+                        cleanup(processingID);
                     }
                 });
             } else {
                 let err = flip.tools.res.INSUFFICIANT_PARAMS;
                 res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
+
+                cleanup(processingID);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
