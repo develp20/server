@@ -1996,8 +1996,10 @@ module.exports = function(io, s3) {
 
                                         token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
                                     } else {
-                                        token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].info.sessionID);
+                                        token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].security.sessionID);
                                     }
+
+                                    console.log(token);
 
                                     callback({
                                         response: "OK",
