@@ -710,8 +710,6 @@ module.exports = function(flip, s3) {
             // Generate processing ID
             let processingID = flip.tools.gen.randomString(5);
 
-            console.log(processingID)
-
             let processingVidPath = "./processing/vid/" + processingID + ".mov";
 
             if(vid && wasUploaded) {
