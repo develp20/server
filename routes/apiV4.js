@@ -726,12 +726,8 @@ module.exports = function(flip, s3) {
                                         timestamps: [ 0 ],
                                         filename: processingID + ".png",
                                         folder: "./processing/scr/"
-                                    }).on("end", function(scrErr) {
+                                    }).on("end", function() {
                                         let postID = flip.tools.gen.postID();
-    
-                                        if(scrErr) {
-                                            console.log(scrErr)
-                                        }
 
                                         fs.readFile("./processing/scr/" + processingID + ".png", function(err0, data0) {
                                             if(!err0) {
@@ -750,7 +746,11 @@ module.exports = function(flip, s3) {
 
                                                 // Put screenshot update w/o callback
                                                 s3.putObject(sParams, function(err1, data1) {
-                                                    console.log(err1, data1)
+                                                    if(!err1) {
+                                                        // success
+                                                    } else {
+                                                        // error
+                                                    }
                                                 });
                                                 
                                                 // Put video update w/ callback
