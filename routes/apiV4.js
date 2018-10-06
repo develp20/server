@@ -725,14 +725,18 @@ module.exports = function(flip, s3) {
                                     new ffmpeg(processingVidPath).screenshots({
                                         timestamps: [ 0 ],
                                         filename: processingID + ".png",
-                                        folder: "./processing/scr"
-                                    }).on("end", function() {
+                                        folder: "./processing/scr/"
+                                    }).on("end", function(scrErr) {
                                         let postID = flip.tools.gen.postID();
     
+                                        if(scrErr) {
+                                            console.log(scrErr)
+                                        }
+
                                         fs.readFile("./processing/scr/" + processingID + ".png", function(err0, data0) {
                                             if(!err0) {
                                                 let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
-                
+
                                                 // Setup parameters for S3 PUT request
                                                 let vParams = {
                                                     Key: postID + "." + videoExtension,
@@ -743,9 +747,11 @@ module.exports = function(flip, s3) {
                                                     Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/thumbnails",
                                                     Body: data0
                                                 };
-                                                
+
                                                 // Put screenshot update w/o callback
-                                                s3.putObject(sParams);
+                                                s3.putObject(sParams, function(err1, data1) {
+                                                    console.log(err1, data1)
+                                                });
                                                 
                                                 // Put video update w/ callback
                                                 s3.putObject(vParams, function(err1, data1) {
