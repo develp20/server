@@ -3000,9 +3000,7 @@ module.exports = function(io, s3) {
                     }
                 }
             },
-            create: function(vID, clientID, wasUploaded, callback) {
-                var postID = flip.tools.gen.postID();
-
+            create: function(vID, postID, clientID, wasUploaded, callback) {
                 db.posts.insert({
                     info: {
                         postID: postID,
@@ -3034,13 +3032,7 @@ module.exports = function(io, s3) {
                     }
                 }, function(err0, docs0) {
                     if(!err0) {
-                        callback({
-                            response: "OK",
-                            data: {
-                                postID: postID
-                            },
-                            statusCode: 200
-                        })
+                        callback(flip.tools.res.SUCCESS);
                     } else {
                         callback(flip.tools.res.ERR);
                     }
@@ -3164,39 +3156,43 @@ module.exports = function(io, s3) {
 
                             db.posts.find(query).sort(timeQuery).skip(parseInt(index)).limit(10, function(err1, docs1) {
                                 if(!err1) {
+                                    let welcomeMsg = {
+                                        info: {
+                                            cardID: "HEY<3",
+                                            cardCreatedAt: Date.now(),
+                                            meta: {
+                                                type: "card"
+                                            }
+                                        },
+                                        data: {
+                                            title: "Welcome to flip",
+                                            date: "",
+                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
+                                            gradient: [
+                                                "#F76B1C",
+                                                "#FAD961"
+                                            ],
+                                            action: {
+                                                type: "openFindFriends",
+                                                title: "Find Friends"
+                                            }
+                                        }
+                                    };
+
                                     if(docs1.length > 0) {
                                         flip.post.multi.handle(docs1, clientID, function(docs2) {
                                             if(docs2.response == "OK") {
                                                 if(docs2.data.length < 10) {
-                                                    docs2.data.push({
-                                                        info: {
-                                                            cardID: "HEY<3",
-                                                            cardCreatedAt: Date.now(),
-                                                            meta: {
-                                                                type: "card"
-                                                            }
-                                                        },
-                                                        data: {
-                                                            title: "Welcome to flip",
-                                                            date: "",
-                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
-                                                            gradient: [
-                                                                "#F76B1C",
-                                                                "#FAD961"
-                                                            ],
-                                                            action: {
-                                                                type: "openFindFriends",
-                                                                title: "Find Friends"
-                                                            }
-                                                        }
-                                                    })
+                                                    docs2.data.push(welcomeMsg)
                                                 }
                                             }
 
                                             callback(docs2);
                                         });
                                     } else {
-                                        callback(flip.tools.res.NO_DATA);
+                                        let noData = flip.tools.res.NO_DATA;
+                                        noData.data.push(welcomeMsg);
+                                        callback(noData);
                                     }
                                 } else {
                                     callback(flip.tools.res.ERR);
