@@ -1,4 +1,4 @@
-module.exports = function(io) {
+module.exports = function(io, s3) {
     // PROHIBITED USERNAMES
     let prohibitedUsers = [
         "7Gqertfaqdgo1wN", //BabyMarina
@@ -17,7 +17,7 @@ module.exports = function(io) {
         "GEcohc2jzFq9Xs5", // reed
         "nO8SeseASez3zpn", // noah
         "ZayZNBxo26bQRPI", // 3raxton
-        "GRsVOxSLadGeUgX" // amrith
+        "GRsVOxSLadGeUgX"  // amrith
     ];
 
     // TIMED OUT USERS
@@ -31,10 +31,21 @@ module.exports = function(io) {
 
     // DATABASE CONFIG
     let dbConfig = require("../config/config.json");
-
+    
     // MONGO JS
     let mongojs = require("mongojs")
-    let db = mongojs(dbConfig.mDB, [ "users", "posts", "chat", "reservations", "featured", "reports", "hashtags", "bookmarks", "notifications" ])
+
+    let db = mongojs(process.env.MONGODB_URI, [
+        "users",
+        "posts",
+        "chat",
+        "reservations",
+        "featured",
+        "reports",
+        "hashtags",
+        "bookmarks",
+        "notifications"
+    ]);
 
     // BCRYPT
     let bcrypt = require("bcryptjs");
@@ -58,7 +69,7 @@ module.exports = function(io) {
 
     // SENDGRID
     let sgMail = require("@sendgrid/mail");
-    sgMail.setApiKey(dbConfig.sgKey);
+    sgMail.setApiKey(process.env.SG_KEY);
 
     // TWIT
     let Twit = require("twit");
@@ -119,19 +130,14 @@ module.exports = function(io) {
         return this;
     };
 
-    //
     let FL_SCREENSHOTS_ENABLED = false;
 
-    let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
-    let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
-
     const flip = {
-        io: null,
         auth: function(req, callback) {
             let token = req.headers["authorization"];
 
             if(token) {
-                jwt.verify(token, dbConfig.jwt.secret, function(err0, decoded) {
+                jwt.verify(token, process.env.JWT, function(err0, decoded) {
                     if(!err0) {
                         let clientID = decoded.clientID;
                         let sessionID = decoded.sessionID;
@@ -837,8 +843,6 @@ module.exports = function(io) {
                         exploreData.push()
                     }
 
-
-
                     db.posts.find({
                         $and: [
                             {
@@ -985,7 +989,7 @@ module.exports = function(io) {
                     let token = jwt.sign({
                         clientID: clientID,
                         sessionID: sessionID
-                    }, dbConfig.jwt.secret);
+                    }, process.env.JWT);
 
                     return token
                 },
@@ -1973,19 +1977,25 @@ module.exports = function(io) {
                         if(docs0.length > 0) {
                             if(bcrypt.compareSync(password, docs0[0].security.password)) {
                                 if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
-                                    let newSessionID = flip.tools.gen.sessionID();
+                                    var token;
 
-                                    db.users.update({
-                                        "info.clientID": docs0[0].info.clientID
-                                    }, {
-                                        $set: {
-                                            "security.sessionID": newSessionID,
-                                            "session.isLoggedIn": true,
-                                            "session.lastLoggedInAt": Date.now()
-                                        }
-                                    })
+                                    if(process.env.NODE_ENV == "production") {
+                                        let newSessionID = flip.tools.gen.sessionID();
 
-                                    let token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
+                                        db.users.update({
+                                            "info.clientID": docs0[0].info.clientID
+                                        }, {
+                                            $set: {
+                                                "security.sessionID": newSessionID,
+                                                "session.isLoggedIn": true,
+                                                "session.lastLoggedInAt": Date.now()
+                                            }
+                                        })
+
+                                        token = flip.user.token.generate(docs0[0].info.clientID, newSessionID);
+                                    } else {
+                                        token = flip.user.token.generate(docs0[0].info.clientID, docs0[0].security.sessionID);
+                                    }
 
                                     callback({
                                         response: "OK",
@@ -2504,12 +2514,21 @@ module.exports = function(io) {
                                                                 }
                                                             }
 
+                                                            var streamURL = "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
+                                                                thumbURL = "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png";
+
+                                                            let bucketName = process.env.BUCKETEER_BUCKET_NAME;
+
+                                                            // s3 migration timestamp
+                                                            if(cDoc.info.postedAt >= 1538706511013) {
+                                                                streamURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/videos/" + cDoc.info.postID + ".mov";
+                                                                thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + cDoc.info.postID + ".png";
+                                                            }
 
                                                             cDoc.data = {
                                                                 caption: cDoc.data.caption,
-                                                                streamURL: "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
-                                                                // streamURL: "https://api.flip.wtf/v3/post/stream/" + cDoc.info.postID,
-                                                                thumbURL: "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png",
+                                                                streamURL: streamURL,
+                                                                thumbURL: thumbURL,
                                                                 stats: {
                                                                     formatted: {
                                                                         views: shortNumber(Math.round(cDoc.data.stats.raw.views)) + "",
@@ -2979,9 +2998,7 @@ module.exports = function(io) {
                     }
                 }
             },
-            create: function(vID, clientID, wasUploaded, callback) {
-                var postID = flip.tools.gen.postID();
-
+            create: function(vID, postID, clientID, wasUploaded, callback) {
                 db.posts.insert({
                     info: {
                         postID: postID,
@@ -3013,13 +3030,7 @@ module.exports = function(io) {
                     }
                 }, function(err0, docs0) {
                     if(!err0) {
-                        callback({
-                            response: "OK",
-                            data: {
-                                postID: postID
-                            },
-                            statusCode: 200
-                        })
+                        callback(flip.tools.res.SUCCESS);
                     } else {
                         callback(flip.tools.res.ERR);
                     }
@@ -3078,16 +3089,22 @@ module.exports = function(io) {
                                         ]
                                     }, multi);
 
-                                    fs.unlink(FL_VIDEO_PATH + postID + ".mov", (err) => {
-                                        if(!err) {
-                                            // deleted successfully
-                                        }
-                                    });
+                                    let params = {
+                                        Bucket: process.env.BUCKETEER_BUCKET_NAME, 
+                                        Delete: {
+                                            Objects: [
+                                                {
+                                                    Key: "public/videos/" + postID + ".mov"
+                                                },
+                                                {
+                                                    Key:  "public/thumbnails/" + postID + ".png" 
+                                                }
+                                            ],
+                                        },
+                                    };
 
-                                    fs.unlink(FL_THUMB_PATH + postID + ".png", (err) => {
-                                        if(!err) {
-                                            // deleted successfully
-                                        }
+                                    s3.deleteObjects(params, function(err2, data2) {
+                                        console.log(err2, data2)
                                     });
                                 } else {
                                     callback(flip.tools.res.ERR);
@@ -3137,39 +3154,47 @@ module.exports = function(io) {
 
                             db.posts.find(query).sort(timeQuery).skip(parseInt(index)).limit(10, function(err1, docs1) {
                                 if(!err1) {
+                                    let welcomeMsg = {
+                                        info: {
+                                            cardID: "HEY<3",
+                                            cardCreatedAt: Date.now(),
+                                            meta: {
+                                                type: "card"
+                                            }
+                                        },
+                                        data: {
+                                            title: "Welcome to flip",
+                                            date: "",
+                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
+                                            gradient: [
+                                                "#F76B1C",
+                                                "#FAD961"
+                                            ],
+                                            action: {
+                                                type: "openFindFriends",
+                                                title: "Find Friends"
+                                            }
+                                        }
+                                    };
+
                                     if(docs1.length > 0) {
                                         flip.post.multi.handle(docs1, clientID, function(docs2) {
                                             if(docs2.response == "OK") {
                                                 if(docs2.data.length < 10) {
-                                                    docs2.data.push({
-                                                        info: {
-                                                            cardID: "HEY<3",
-                                                            cardCreatedAt: Date.now(),
-                                                            meta: {
-                                                                type: "card"
-                                                            }
-                                                        },
-                                                        data: {
-                                                            title: "Welcome to flip",
-                                                            date: "",
-                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
-                                                            gradient: [
-                                                                "#F76B1C",
-                                                                "#FAD961"
-                                                            ],
-                                                            action: {
-                                                                type: "openFindFriends",
-                                                                title: "Find Friends"
-                                                            }
-                                                        }
-                                                    })
+                                                    docs2.data.push(welcomeMsg)
                                                 }
                                             }
 
                                             callback(docs2);
                                         });
                                     } else {
-                                        callback(flip.tools.res.NO_DATA);
+                                        callback({
+                                            response: "OK",
+                                            data: [
+                                                welcomeMsg
+                                            ],
+                                            statusCode: 200
+                                        });
                                     }
                                 } else {
                                     callback(flip.tools.res.ERR);
@@ -4038,7 +4063,7 @@ module.exports = function(io) {
                     response: "NO_ITEMS",
                     formattedTitle: "No Items Found",
                     formattedResponse: "Your query returned no items. Please adjust your query and try again.",
-                    statusCode: 204
+                    statusCode: 200
                 },
                 NO_DATA: {
                     response: "OK",
@@ -4046,7 +4071,7 @@ module.exports = function(io) {
                     meta: {
                         hasGotMoreItems: false
                     },
-                    statusCode: 204
+                    statusCode: 200
                 },
                 SERVICE_UNKNOWN: {
                     response: "SERVICE_UNKNOWN",

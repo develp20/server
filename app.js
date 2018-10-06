@@ -1,20 +1,17 @@
-var express = require("express");
-var cookieParser = require("cookie-parser");
-let logger = require("morgan");
-let bodyParser = require("body-parser");
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 
-var app = express();
+const app = express();
 
-let cors = require("cors");
-
-app.use(cors({
+app.use(require("cors")({
     origin: "https://admin.flip.wtf"
 }));
 
-let fileUpload = require("express-fileupload");
-let RateLimit = require("express-rate-limit");
+const fileUpload = require("express-fileupload");
+const RateLimit = require("express-rate-limit");
  
-let limiter = new RateLimit({
+const limiter = new RateLimit({
     windowMs: 1000 * 60 * 5,
     max: 180,
     delayMs: 0,
@@ -33,32 +30,46 @@ app.use(fileUpload());
 
 app.use(limiter);
 
+const path = require("path");
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
 app.enable("trust proxy");
 
-let http = require("http");
-let server = http.createServer(app);
-let io = require("socket.io")(server);
-
-const flip = require("./FLKit/FLKit.js")(io);
-
-const v3 = require("./routes/apiV3.js");
-const v4 = require("./routes/apiV4.js")(flip);
-
-app.use("/api/v3/", v3);
-app.use("/api/v4/", v4);
-app.use("/api/v4/admin/", require("./routes/admin.js"));
-
 app.get("/", (req, res) => {
-    res.redirect("/api/");
+    res.render("home", {
+        env: process.env.NODE_ENV
+    });
 });
 
-app.get("/api/", (req, res) => {
-    res.redirect("https://www.youtube.com/watch?v=-BzyCf0pjUA");
+const AWS = require("aws-sdk");
+
+const s3 = new AWS.S3({
+    accessKeyId: process.env.BUCKETEER_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY,
+    region: process.env.BUCKETEER_AWS_REGION
 });
+
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server);
+
+const flip = require("./FLKit/FLKit.js")(io, s3);
+
+const v4 = require("./routes/apiV4.js")(flip, s3);
+
+app.post("/v3/", (req, res) => {
+    res.send({
+        response: "DEPRECATED",
+        formattedTitle: "Version Depricated",
+        formattedResponse: "This version of the app has been discontinued. Please upgrade to the latest version through the App Store."
+    })
+});
+
+app.use("/v4/", v4);
+app.use("/v4/admin/", require("./routes/admin.js"));
 
 io.on("connection", function(socket) {
-    console.log("A user connected");
-
     socket.on("FL_CH_SUBSCRIBE_TO_THREAD", function(threadData) {
         socket.join(threadData.threadLiveTypingKey);
 
@@ -68,7 +79,7 @@ io.on("connection", function(socket) {
 
     socket.on("FL_CH_LT_DID_TYPING_OCCUR", function(data) {
         if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
-            let liveTypingData = {
+            const liveTypingData = {
                 info: {
                     messageID: "",
                     messageSentAt: Date.now(),
@@ -81,8 +92,6 @@ io.on("connection", function(socket) {
                 }
             };
 
-            console.log(data.content.trim());
-
             io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_LT_DID_TYPING_OCCUR", liveTypingData)
         }
     });
@@ -93,7 +102,7 @@ io.on("connection", function(socket) {
     })
 });
 
-let port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 server.listen(port, function() {
     console.log("Listening on :" + port);
