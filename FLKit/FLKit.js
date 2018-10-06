@@ -3190,9 +3190,13 @@ module.exports = function(io, s3) {
                                             callback(docs2);
                                         });
                                     } else {
-                                        let noData = flip.tools.res.NO_DATA;
-                                        noData.data.push(welcomeMsg);
-                                        callback(noData);
+                                        callback({
+                                            response: "OK",
+                                            data: [
+                                                welcomeMsg
+                                            ],
+                                            statusCode: 200
+                                        });
                                     }
                                 } else {
                                     callback(flip.tools.res.ERR);
