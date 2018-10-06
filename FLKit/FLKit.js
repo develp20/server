@@ -843,8 +843,6 @@ module.exports = function(io, s3) {
                         exploreData.push()
                     }
 
-
-
                     db.posts.find({
                         $and: [
                             {

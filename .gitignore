@@ -74,6 +74,5 @@ typings/
 
 # Custom
 .DS_Store
-videos/*
-thumbnails/*
-stats.txt
+processing/vid/*.mov
+processing/scr/*.png
