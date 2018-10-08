@@ -110,7 +110,7 @@ let productionAPNSProvider = new apn.Provider(productionAPN);
 let developmentAPNSProvider = new apn.Provider(developmentAPN);
 
 // CLEAN ARRAY EXTENSION
-Array.prototype.clean = function(deleteValue) {
+Array.prototype.clean = (deleteValue) => {
     for(var i = 0; i < this.length; i++) {
         if(this[i] == deleteValue) {
             this.splice(i, 1);
@@ -129,11 +129,11 @@ let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
 
 const flip = {
     io: null,
-    auth: function(req, callback) {
+    auth: (req, callback) => {
         let token = req.headers["authorization"];
 
         if(token) {
-            jwt.verify(token, dbConfig.jwt.secret, function(err0, decoded) {
+            jwt.verify(token, dbConfig.jwt.secret, (err0, decoded) => {
                 if(!err0) {
                     let clientID = decoded.clientID;
                     let sessionID = decoded.sessionID;
@@ -147,10 +147,10 @@ const flip = {
                                 "security.sessionID": sessionID
                             }
                         ],
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
-                                flip.user.get.safe.clientID(clientID, clientID, function(data0) {
+                                flip.user.get.safe.clientID(clientID, clientID, (data0) => {
                                     if(data0.response == "OK") {
                                         if(typeof req.body.isInitialAuthRequest !== "undefined") {
                                             if(req.body.isInitialAuthRequest == true) {
@@ -213,12 +213,12 @@ const flip = {
         }
     },
     admin: {
-        auth: function(body, callback) {
-            flip.auth(body, function(auth) {
+        auth: (body, callback) => {
+            flip.auth(body, (auth) => {
                 if(auth.response == "OK") {
                     db.admins.find({
                         "info.clientID": body.clientID
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 callback(flip.tools.res.SUCCESS)
@@ -235,10 +235,10 @@ const flip = {
             })
         },
         users: {
-            get: function(clientID, callback) {
+            get: (clientID, callback) => {
                 db.users.find({}).limit(10).sort({
                     "info.joinedAt": -1
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             var clientIDs = [];
@@ -247,7 +247,7 @@ const flip = {
                                 clientIDs.splice(i, 0, docs0[i].info.clientID)
 
                                 if(i == docs0.length - 1) {
-                                    flip.user.get.multi.minified(clientIDs, 0, clientID, function(data0) {
+                                    flip.user.get.multi.minified(clientIDs, 0, clientID, (data0) => {
                                         callback(data0)
                                     })
                                 }
@@ -263,17 +263,17 @@ const flip = {
         },
         posts: {
             get: {
-                latest: function(clientID, callback) {
+                latest: (clientID, callback) => {
                     db.posts.find({
                         "info.postedBy": {
                             $nin: prohibitedUsers
                         }
                     }).sort({
                         "info.postedAt": -1
-                    }).limit(10, function(err0, docs0) {
+                    }).limit(10, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
-                                flip.post.multi.handle(docs0, clientID, function(data0) {
+                                flip.post.multi.handle(docs0, clientID, (data0) => {
                                     if(data0.response == "OK") {
                                         callback(data0);
                                     } else {
@@ -296,7 +296,7 @@ const flip = {
                         }
                     })
                 },
-                popular: function(clientID, callback) {
+                popular: (clientID, callback) => {
                     db.posts.find({
                         $and: [
                             {
@@ -315,10 +315,10 @@ const flip = {
                         ]
                     }).sort({
                         "data.stats.raw.views": -1
-                    }).limit(10, function(err0, docs0) {
+                    }).limit(10, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
-                                flip.post.multi.handle(docs0, clientID, function(data0) {
+                                flip.post.multi.handle(docs0, clientID, (data0) => {
                                     if(data0.response == "OK") {
                                         callback(data0);
                                     } else {
@@ -337,11 +337,11 @@ const flip = {
         }
     },
     onboarding: {
-        get: function(callback) {
-            flip.explore.latestID(function(feedID) {
+        get: (callback) => {
+            flip.explore.latestID((feedID) => {
                 db.explore.find({
                     "info.feedID": feedID
-                }).limit(1, function(err0, docs0) {
+                }).limit(1, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             var exploreLimit = 10
@@ -353,9 +353,9 @@ const flip = {
                                 var posts = []
                                 var processed = exploreData.length
 
-                                exploreData.forEach(function(doc, i) {
+                                exploreData.forEach((doc, i) => {
                                     if(doc.info.meta.type == "post") {
-                                        flip.post.get(doc.info.postID, "", function(data0) {
+                                        flip.post.get(doc.info.postID, "", (data0) => {
                                             if(data0.response == "OK") {
                                                 posts.push(data0.data)
                                             }
@@ -394,13 +394,13 @@ const flip = {
         }
     },
     explore: {
-        latestID: function(callback) {
+        latestID: (callback) => {
             if(FL_SCREENSHOTS_ENABLED) {
                 callback("testt");
             } else {
                 db.explore.find({}).sort({
                     "info.feedCreatedAt": -1
-                }).limit(1, function(err0, docs0) {
+                }).limit(1, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             callback(docs0[0].info.feedID);
@@ -414,7 +414,7 @@ const flip = {
             }
         },
         create: {
-            feed: function(callback) {
+            feed: (callback) => {
                 db.explore.insert({
                     info: {
                         feedID: flip.tools.gen.randomString(5),
@@ -438,7 +438,7 @@ const flip = {
                             }
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS)
                     } else {
@@ -446,8 +446,8 @@ const flip = {
                     }
                 });
             },
-            post: function(postID, callback) {
-                flip.explore.latestID(function(feedID) {
+            post: (postID, callback) => {
+                flip.explore.latestID((feedID) => {
                     db.explore.update({
                         "info.feedID": feedID
                     }, {
@@ -463,11 +463,11 @@ const flip = {
                                 }
                             }
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             db.posts.find({
                                 "info.postID": postID
-                            }, function(err1, docs1) {
+                            }, (err1, docs1) => {
                                 if(!err1) {
                                     if(docs1.length > 0) {
                                         flip.notification.send({
@@ -495,8 +495,8 @@ const flip = {
                     })
                 })
             },
-            info: function(title, body, gradient, callback) {
-                flip.explore.latestID(function(feedID) {
+            info: (title, body, gradient, callback) => {
+                flip.explore.latestID((feedID) => {
                     db.explore.update({
                         "info.feedID": feedID
                     }, {
@@ -517,7 +517,7 @@ const flip = {
                                 }
                             }
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -526,13 +526,13 @@ const flip = {
                     })
                 })
             },
-            user: function(username, callback) {
+            user: (username, callback) => {
                 db.users.find({
                     "info.username": username
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            flip.explore.latestID(function(feedID) {
+                            flip.explore.latestID((feedID) => {
                                 flip.notification.send({
                                     forClientID: docs0[0].info.clientID,
                                     body: "✨ We just added you to Explore for all of flip to see, check it out!"
@@ -553,7 +553,7 @@ const flip = {
                                             }
                                         }
                                     }
-                                }, function(err1, docs1) {
+                                }, (err1, docs1) => {
                                     if(!err1) {
                                         callback(flip.tools.res.SUCCESS)
                                     } else {
@@ -569,8 +569,8 @@ const flip = {
                     }
                 })
             },
-            splitter: function(callback) {
-                flip.explore.latestID(function(feedID) {
+            splitter: (callback) => {
+                flip.explore.latestID((feedID) => {
                     db.explore.update({
                         "info.feedID": feedID
                     }, {
@@ -585,7 +585,7 @@ const flip = {
                                 }
                             }
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -595,11 +595,11 @@ const flip = {
                 })
             }
         },
-        delete: function(cardID, callback) {
-            flip.explore.latestID(function(feedID) {
+        delete: (cardID, callback) => {
+            flip.explore.latestID((feedID) => {
                 db.explore.find({
                     "info.feedID": feedID
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             let cards = docs0[0].data;
@@ -631,7 +631,7 @@ const flip = {
                                 "info.cardID": cardID
                             }
                         }
-                    }, function(err1, docs1) {
+                    }, (err1, docs1) => {
                         if(!err1) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -641,13 +641,13 @@ const flip = {
                 })
             })
         },
-        rearrange: function(cardID, newIndex, callback) {
-            flip.explore.latestID(function(feedID) {
+        rearrange: (cardID, newIndex, callback) => {
+            flip.explore.latestID((feedID) => {
                 let query = {
                     "info.feedID": feedID
                 }
 
-                db.explore.find(query, function(err0, docs0) {
+                db.explore.find(query, (err0, docs0) => {
                     if(!err0) {
                         let oldElem = null
                         let data = docs0[0].data;
@@ -660,7 +660,7 @@ const flip = {
                                     $pull: {
                                         "data": oldElem
                                     }
-                                }, function(err1, data1) {
+                                }, (err1, data1) => {
                                     if(!err1) {
                                         db.explore.update(query, {
                                             $push: {
@@ -671,7 +671,7 @@ const flip = {
                                                     $position: parseInt(newIndex)
                                                 }
                                             }
-                                        }, function(err2, data2) {
+                                        }, (err2, data2) => {
                                             if(!err2) {
                                                 callback(flip.tools.res.SUCCESS)
                                             } else {
@@ -694,17 +694,17 @@ const flip = {
             })
         },
         compile: {
-            manual: function(data, clientID, hasGotMoreItems, callback) {
+            manual: (data, clientID, hasGotMoreItems, callback) => {
                 var processed = data.length;
 
                 var meta = {
                     hasGotMoreItems: hasGotMoreItems
                 }
 
-                data.forEach(function(doc, i) {
+                data.forEach((doc, i) => {
                     if(doc != null) {
                         if(doc.info.meta.type == "post") {
-                            flip.post.get(doc.info.postID, clientID, function(data0) {
+                            flip.post.get(doc.info.postID, clientID, (data0) => {
                                 if(data0.response == "OK") {
                                     data0.data.info.cardID = doc.info.cardID
                                     data0.data.info.cardCreatedAt = doc.info.cardCreatedAt
@@ -728,7 +728,7 @@ const flip = {
                                 }
                             })
                         } else if(doc.info.meta.type == "user") {
-                            flip.user.get.safe.clientID(doc.info.clientID, clientID, function(data0) {
+                            flip.user.get.safe.clientID(doc.info.clientID, clientID, (data0) => {
                                 if(data0.response == "OK") {
                                     processed--;
                                     data0.data.info.cardID = doc.info.cardID
@@ -751,7 +751,7 @@ const flip = {
                                 }
                             })
                         } else if(doc.info.meta.type == "trending") {
-                            flip.hashtag.get(function(data0) {
+                            flip.hashtag.get((data0) => {
                                 if(data0.response == "OK") {
                                     if(data0.data.length > 0) {
                                         processed--;
@@ -828,7 +828,7 @@ const flip = {
                     }
                 })
             },
-            auto: function(clientID, index, callback) {
+            auto: (clientID, index, callback) => {
                 var exploreData = []
 
                 if(index == 0) {
@@ -852,10 +852,10 @@ const flip = {
                     ]
                 }).sort({
                     "data.stats.raw.views": -1
-                }).limit(10, function(err0, docs0) {
+                }).limit(10, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            flip.post.multi.handle(docs0, clientID, function(data0) {
+                            flip.post.multi.handle(docs0, clientID, (data0) => {
                                 if(data0.response == "OK") {
                                     if(index == 0) {
                                         data0.data.splice(0, 0, {
@@ -886,7 +886,7 @@ const flip = {
                                         hasGotMoreItems: false
                                     }
 
-                                    flip.hashtag.get(function(data1) {
+                                    flip.hashtag.get((data1) => {
                                         if(data1.response == "OK") {
                                             if(data1.data.length > 0) {
                                                 data0.data.splice(0, 0, {
@@ -931,11 +931,11 @@ const flip = {
                 })
             }
         },
-        get: function(clientID, index, inf, callback) {
-            flip.explore.latestID(function(feedID) {
+        get: (clientID, index, inf, callback) => {
+            flip.explore.latestID((feedID) => {
                 db.explore.find({
                     "info.feedID": feedID
-                }).limit(1, function(err0, docs0) {
+                }).limit(1, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             // if(true) {
@@ -948,7 +948,7 @@ const flip = {
                                 }
 
                                 if(exploreData.length > 0) {
-                                    flip.explore.compile.manual(exploreData, clientID, !(exploreData.length < 10), function(data0) {
+                                    flip.explore.compile.manual(exploreData, clientID, !(exploreData.length < 10), (data0) => {
                                         if(data0.response == "OK") {
                                             callback(data0)
                                         } else {
@@ -959,7 +959,7 @@ const flip = {
                                     callback(flip.tools.res.NO_DATA);
                                 }
                             } else {
-                                flip.explore.compile.auto(clientID, index, function(data0) {
+                                flip.explore.compile.auto(clientID, index, (data0) => {
                                     if(data0.response == "OK") {
                                         callback(data0)
                                     } else {
@@ -979,7 +979,7 @@ const flip = {
     },
     user: {
         token: {
-            generate: function(clientID, sessionID) {
+            generate: (clientID, sessionID) => {
                 let token = jwt.sign({
                     clientID: clientID,
                     sessionID: sessionID
@@ -987,7 +987,7 @@ const flip = {
 
                 return token
             },
-            switchover: function(clientID, sessionID, callback) {
+            switchover: (clientID, sessionID, callback) => {
                 db.users.find({
                     $and: [
                         {
@@ -1000,7 +1000,7 @@ const flip = {
                             "security.isUsingJWTAuth": false
                         }
                     ]
-                }, function(err0, data0) {
+                }, (err0, data0) => {
                     if(!err0) {
                         if(data0.length > 0) {
                             let token = flip.user.token.generate(clientID, sessionID);
@@ -1030,8 +1030,8 @@ const flip = {
                 });
             }
         },
-        logout: function(clientID, callback) {
-            flip.user.get.raw(clientID, function(data0) {
+        logout: (clientID, callback) => {
+            flip.user.get.raw(clientID, (data0) => {
                 if(data0.response == "OK") {
                     db.users.update({
                         "info.clientID": clientID
@@ -1043,7 +1043,7 @@ const flip = {
                         $unset: {
                             "info.deviceToken": ""
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -1057,12 +1057,12 @@ const flip = {
         },
         service: {
             get: {
-                contacts: function(clientID, emailAddresses, callback) {
+                contacts: (clientID, emailAddresses, callback) => {
                     db.users.find({
                         "security.email": {
                             $in: emailAddresses
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 let clientIDs = [];
@@ -1079,7 +1079,7 @@ const flip = {
 
                                     processed--;
                                     if(processed == 0) {
-                                        flip.user.get.multi.minified(clientIDs, 0, clientID, function(data0) {
+                                        flip.user.get.multi.minified(clientIDs, 0, clientID, (data0) => {
                                             callback(data0)
                                         })
                                     }
@@ -1092,8 +1092,8 @@ const flip = {
                         }
                     })
                 },
-                twitter: function(clientID, callback) {
-                    flip.user.get.raw(clientID, function(data0) {
+                twitter: (clientID, callback) => {
+                    flip.user.get.raw(clientID, (data0) => {
                         if(data0.response == "OK") {
                             let data = data0.data;
 
@@ -1109,12 +1109,12 @@ const flip = {
                                     access_token_secret: credentials.accessTokenSecret
                                 })
 
-                                T.get("account/verify_credentials", function(err1, data1, res1) {
+                                T.get("account/verify_credentials", (err1, data1, res1) => {
                                     if(!err1) {
                                         if(data1.friends_count > 0) {
                                             let userID = data1.id;
 
-                                            T.get("friends/ids", { user_id: userID }, function(err2, data2, res2) {
+                                            T.get("friends/ids", { user_id: userID }, (err2, data2, res2) => {
                                                 if(!err2) {
                                                     let following = data2.ids;
 
@@ -1122,9 +1122,9 @@ const flip = {
                                                         "services.twitter.userID": {
                                                             $in: following
                                                         }
-                                                    }, function(err3, docs3) {
+                                                    }, (err3, docs3) => {
                                                         if(!err3) {
-                                                            flip.user.get.multi.raw(docs3, clientID, function(data4) {
+                                                            flip.user.get.multi.raw(docs3, clientID, (data4) => {
                                                                 callback(data4);
                                                             })
                                                         } else {
@@ -1151,7 +1151,7 @@ const flip = {
                     })
                 }
             },
-            connect: function(clientID, data, callback) {
+            connect: (clientID, data, callback) => {
                 let name = data.name;
                 let token = data.tokens.token;
                 let secret = data.tokens.secret;
@@ -1161,7 +1161,7 @@ const flip = {
                 if(id == "twitter") {
                     db.users.find({
                         "services.twitter.accessToken": token
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.count == 0) {
                                 var T = new Twit({
@@ -1171,7 +1171,7 @@ const flip = {
                                     access_token_secret: secret
                                 })
 
-                                T.get("account/verify_credentials", function(err0, data0, res0) {
+                                T.get("account/verify_credentials", (err0, data0, res0) => {
                                     if(!err0) {
                                         let userID = data0.id_str;
 
@@ -1188,7 +1188,7 @@ const flip = {
                                             $addToSet: {
                                                 "services.connected": id
                                             }
-                                        }, function(err1, docs1) {
+                                        }, (err1, docs1) => {
                                             if(!err1) {
                                                 callback(flip.tools.res.SUCCESS);
                                             } else {
@@ -1211,7 +1211,7 @@ const flip = {
                     callback(flip.tools.res.SERVICE_UNKNOWN)
                 }
             },
-            disconnect: function(clientID, data, callback) {
+            disconnect: (clientID, data, callback) => {
                 let name = data.name;
 
                 let id = name.toLowerCase();
@@ -1225,7 +1225,7 @@ const flip = {
                     $pull: {
                         "services.connected": id
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1235,15 +1235,16 @@ const flip = {
             }
         },
         settings: {
-            get: function(clientID, callback) {
-                // flip.user.get.raw(clientID, function(data0) {
+            get: (clientID, callback) => {
+                // You're probably never gonna uncomment this but I'm making it ES6 anyways.
+                // flip.user.get.raw(clientID, (data0) => {
                 //     if(data0.response == "OK") {
 
                 //     } else {}
                 // })
                 db.users.find({
                     "info.clientID": clientID
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             let currentGradient = docs0[0].profile.gradient;
@@ -1278,7 +1279,7 @@ const flip = {
                     }
                 })
             },
-            update: function(clientID, settings, callback) {
+            update: (clientID, settings, callback) => {
                 var masterSettings = {};
                 var hasUpdated = false;
 
@@ -1311,7 +1312,7 @@ const flip = {
                         "info.clientID": clientID
                     }, {
                         $set: masterSettings
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -1324,8 +1325,8 @@ const flip = {
             }
         },
         setting: {
-            get: function (clientID, key, type, callback) {
-                flip.user.get.raw(clientID, function(data0) {
+            get: (clientID, key, type, callback) => {
+                flip.user.get.raw(clientID, (data0) => {
                     if(data0.response == "OK") {
                         let data = data0.data;
                         let settings = data.settings;
@@ -1344,7 +1345,7 @@ const flip = {
                     }
                 })
             },
-            set: function(clientID, key, state, type, callback) {
+            set: (clientID, key, state, type, callback) => {
                 var data = {
                     $set: {}
                 };
@@ -1353,7 +1354,7 @@ const flip = {
 
                 db.users.update({
                     "info.clientID": clientID
-                }, data, function(err0, docs0) {
+                }, data, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1363,10 +1364,10 @@ const flip = {
             }
         },
         get: {
-            raw: function(clientID, callback) {
+            raw: (clientID, callback) => {
                 db.users.find({
                     "info.clientID": clientID
-                }, function(err, docs) {
+                }, (err, docs) => {
                     if(!err) {
                         if(docs.length > 0) {
                             callback({
@@ -1383,20 +1384,20 @@ const flip = {
                 });
             },
             safe: {
-                clientID: function(clientID, requesterClientID, callback) {
+                clientID: (clientID, requesterClientID, callback) => {
                     db.users.find({
                         "info.clientID": clientID
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 if(docs0[0].profile.blocked.indexOf(requesterClientID) == -1) {
                                     db.posts.find({
                                         "info.postedBy": clientID
-                                    }).count(function(err1, docs1) {
+                                    }).count((err1, docs1) => {
                                         if(!err1) {
                                             db.users.find({
                                                 "info.clientID": requesterClientID
-                                            }, function(err2, docs2) {
+                                            }, (err2, docs2) => {
                                                 if(!err2) {
                                                     var safeData = {};
                                                     var isFollowing = (docs0[0].profile.followers.indexOf(requesterClientID) > -1);
