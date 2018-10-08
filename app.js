@@ -1,23 +1,20 @@
-var express = require("express");
-var cookieParser = require("cookie-parser");
-let logger = require("morgan");
-let bodyParser = require("body-parser");
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 
-var app = express();
+const app = express();
 
-let cors = require("cors");
-
-app.use(cors({
+app.use(require("cors")({
     origin: "https://admin.flip.wtf"
 }));
 
-let fileUpload = require("express-fileupload");
-let RateLimit = require("express-rate-limit");
+const fileUpload = require("express-fileupload");
+const RateLimit = require("express-rate-limit");
  
-let limiter = new RateLimit({
-    windowMs: 1000 * 60 * 5, // 1 minute
-    max: 180, // limit each IP to 75 requests per windowMs
-    delayMs: 0, // disable delaying - full speed until the max limit is reached
+const limiter = new RateLimit({
+    windowMs: 1000 * 60 * 5,
+    max: 180,
+    delayMs: 0,
     message: {
         response: "RATE_LIMIT_REACHED",
         formattedTitle: "Rate Limit Reached",
@@ -33,26 +30,46 @@ app.use(fileUpload());
 
 app.use(limiter);
 
+const path = require("path");
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
 app.enable("trust proxy");
 
-const flip = require("./FLKit/FLKit.js");
+app.get("/", (req, res) => {
+    res.render("home", {
+        env: process.env.NODE_ENV
+    });
+});
 
-const v3 = require("./routes/apiV3.js");
-const v4 = require("./routes/apiV4.js")(flip);
+const AWS = require("aws-sdk");
 
-app.use("/api/v3/", v3);
-app.use("/api/v4/", v4);
-app.use("/api/v4/admin/", require("./routes/admin.js"));
+const s3 = new AWS.S3({
+    accessKeyId: process.env.BUCKETEER_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY,
+    region: process.env.BUCKETEER_AWS_REGION
+});
 
-let http = require("http");
-let server = http.createServer(app);
-let io = require("socket.io")(server);
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server);
 
-flip.io = io;
+const flip = require("./FLKit/FLKit.js")(io, s3);
+
+const v4 = require("./routes/apiV4.js")(flip, s3);
+
+app.post("/v3/", (req, res) => {
+    res.send({
+        response: "DEPRECATED",
+        formattedTitle: "Version Depricated",
+        formattedResponse: "This version of the app has been discontinued. Please upgrade to the latest version through the App Store."
+    })
+});
+
+app.use("/v4/", v4);
+app.use("/v4/admin/", require("./routes/admin.js"));
 
 io.on("connection", function(socket) {
-    console.log("A user connected");
-
     socket.on("FL_CH_SUBSCRIBE_TO_THREAD", function(threadData) {
         socket.join(threadData.threadLiveTypingKey);
 
@@ -60,29 +77,9 @@ io.on("connection", function(socket) {
         flip.chat.FL_LIVE_TYPING_USERS[socket.id] = threadData.clientID
     });
 
-    socket.on("FL_CH_NEW_MESSAGE_SENT", function(data) {
-        console.log(datas)
-        if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
-            let liveTypingData = {
-                info: {
-                    messageID: "",
-                    messageSentAt: Date.now(),
-                    messageLastUpdatedAt: Date.now(),
-                    messageSentAgo: "just now",
-                    messageSentBy: flip.chat.FL_LIVE_TYPING_USERS[socket.id]
-                },
-                data: {
-                    content: data.content.trim()
-                }
-            };
-
-            io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_NEW_MESSAGE_SENT", liveTypingData)
-        }
-    })
-
     socket.on("FL_CH_LT_DID_TYPING_OCCUR", function(data) {
         if(typeof flip.chat.FL_LIVE_TYPING_USERS[socket.id] !== "undefined") {
-            let liveTypingData = {
+            const liveTypingData = {
                 info: {
                     messageID: "",
                     messageSentAt: Date.now(),
@@ -95,8 +92,6 @@ io.on("connection", function(socket) {
                 }
             };
 
-            console.log(data.content.trim());
-
             io.to(flip.chat.FL_LIVE_TYPING_KEYS[socket.id]).emit("FL_CH_LT_DID_TYPING_OCCUR", liveTypingData)
         }
     });
@@ -107,6 +102,8 @@ io.on("connection", function(socket) {
     })
 });
 
-server.listen(4000, function() {
-    console.log("Listening on :4000");
+const port = process.env.PORT || 4000;
+
+server.listen(port, function() {
+    console.log("Listening on :" + port);
 });

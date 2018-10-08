@@ -1,20 +1,17 @@
-module.exports = function(flip) {
-    // EXPRESS
+module.exports = function(flip, s3) {
+    let FL_DEFAULT_STATUS = 200;
+
     let app = require("express")();
 
     let ffmpegInstaller = require("@ffmpeg-installer/ffmpeg");
     let ffmpeg = require("fluent-ffmpeg");
-
     ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-
-    let FL_VIDEO_PATH = "/home/william/projects/flip/content/videos/";
-    let FL_THUMB_PATH = "/home/william/projects/flip/content/thumbnails/";
 
     let fs = require("fs");
 
     app.post("/user/auth", (req, res) => {
         flip.auth(req, function(data) {
-            res.status(data.statusCode || 200).send(data);
+            res.status(data.statusCode || FL_DEFAULT_STATUS).send(data);
         })
     });
 
@@ -23,7 +20,7 @@ module.exports = function(flip) {
         let sessionID = req.body.sessionID;
 
         flip.user.token.switchover(clientID, sessionID, function(data0) {
-            res.status(data0.statusCode || 200).send(data0);
+            res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
         });
     });
 
@@ -34,7 +31,7 @@ module.exports = function(flip) {
         if(email && password) {
             if(flip.tools.validate.email(email) && flip.tools.validate.password(password)) {
                 flip.user.login(email, password, function(data0) {
-                    res.status(data0.statusCode || 200).send(data0);
+                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                 });
             } else {
                 res.send(flip.tools.res.INVALID_PARAMS);
@@ -48,10 +45,10 @@ module.exports = function(flip) {
         flip.auth(req, function(data0) {
             if(data0.response == "OK") {
                 flip.user.logout(data0.data.info.clientID, function(data1) {
-                    res.status(data1.statusCode || 200).send(data1);
+                    res.status(data1.statusCode || FL_DEFAULT_STATUS).send(data1);
                 })
             } else {
-                res.status(data0.statusCode || 200).send(data0);
+                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
             }
         })
     });
@@ -69,34 +66,34 @@ module.exports = function(flip) {
                         if(type == "clientID") {
                             flip.user.get.safe.clientID(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             });
                         } else if(type == "username") {
                             flip.user.get.safe.username(username, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             });
                         } else {
                             let err = flip.tools.res.INVALID_PARAMS;
-                            res.status(err.statusCode || 200).send(err);
+                            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -107,13 +104,13 @@ module.exports = function(flip) {
             if(auth.response == "OK") {
                 flip.user.settings.get(auth.data.info.clientID, function(data0) {
                     if(data0.response == "OK") {
-                        res.status(data0.statusCode || 200).send(data0);
+                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                     } else {
-                        res.status(data0.statusCode || 200).send(data0);
+                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                     }
                 });
             } else {
-                res.status(auth.statusCode || 200).send(auth);
+                res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
             }
         });
     })
@@ -137,9 +134,9 @@ module.exports = function(flip) {
 
                                 flip.user.service.get.contacts(auth.data.info.clientID, emailAddresses, function(data0) {
                                     if(data0.response == "OK") {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     } else {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     }
                                 })
                             } else {
@@ -148,25 +145,25 @@ module.exports = function(flip) {
                         } else if(name == "twitter") {
                             flip.user.service.get.twitter(auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             })
                         } else {
                             res.send(flip.tools.res.SERVICE_UNKNOWN)
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -189,20 +186,20 @@ module.exports = function(flip) {
 
                         flip.user.service.connect(auth.data.info.clientID, data, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     }
                 })
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -219,20 +216,20 @@ module.exports = function(flip) {
 
                         flip.user.service.disconnect(auth.data.info.clientID, data, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -248,22 +245,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.relationships.get(clientID, index, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -279,25 +276,25 @@ module.exports = function(flip) {
                         if(clientID != auth.data.info.clientID) {
                             flip.user.block.create(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             })
                         } else {
                             res.send(flip.tools.res.INVALID_PARAMS);
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
@@ -311,29 +308,27 @@ module.exports = function(flip) {
                         if(clientID != auth.data.info.clientID) {
                             flip.user.block.destroy(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             })
                         } else {
                             res.send(flip.tools.res.INVALID_PARAMS);
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
-
-// BLOCK END
 
     app.post("/user/:clientID/relationship/create", (req, res) => {
         let clientID = req.params.clientID;
@@ -345,25 +340,25 @@ module.exports = function(flip) {
                         if(clientID != auth.data.info.clientID) {
                             flip.user.interaction.follow(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             });
                         } else {
 
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -377,25 +372,25 @@ module.exports = function(flip) {
                         if(clientID != auth.data.info.clientID) {
                             flip.user.interaction.unfollow(clientID, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             });
                         } else {
                             res.send(flip.tools.res.INVALID_PARAMS);
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -417,10 +412,10 @@ module.exports = function(flip) {
                 };
 
                 flip.user.settings.update(auth.data.info.clientID, settings, function(data0) {
-                    res.status(data0.statusCode || 200).send(data0);
+                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                 });
             } else {
-                res.status(auth.statusCode || 200).send(auth);
+                res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
             }
         });
     });
@@ -438,22 +433,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.setting.set(auth.data.info.clientID, key, state, type, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 })
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
@@ -469,25 +464,25 @@ module.exports = function(flip) {
                         if(flip.tools.validate.username(query)) {
                             flip.user.get.multi.search(query, auth.data.info.clientID, function(data0) {
                                 if(data0.response == "OK") {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 } else {
-                                    res.status(data0.statusCode || 200).send(data0);
+                                    res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                 }
                             })
                         } else {
                             res.send(flip.tools.res.NO_DATA)
                         }
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -500,22 +495,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.notification.get(auth.data.info.clientID, index, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                             } else {
-                                res.status(data0.statusCode || 200).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
@@ -531,22 +526,22 @@ module.exports = function(flip) {
                         flip.post.get(postID, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
                                 data0.data = [data0.data]
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
@@ -559,22 +554,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.bookmark.create(postID, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 })
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -587,22 +582,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.bookmark.destroy(postID, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 })
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -615,25 +610,26 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.get.bookmarks(auth.data.info.clientID, index, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 })
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
+    // DEPRECATED
 
     app.get("/post/stream/:vID", (req, res) => {
         var vID = req.params.vID;
@@ -661,6 +657,8 @@ module.exports = function(flip) {
         }
     });
 
+    // DEPRECATED
+
     app.get("/post/thumb/:tID", (req, res) => {
         var tID = req.params.tID;
 
@@ -680,60 +678,147 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.view(postID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
+    function cleanup(processingID) {
+        fs.unlink("./processing/vid/" + processingID + ".mov", (err) => {});
+        fs.unlink("./processing/scr/" + processingID + ".png", (err) => {});
+    }
+
     app.post("/post/upload", (req, res) => {
-        let vid = req.files.flipVid;
-        let wasUploaded = req.body.uploadedFromCameraRoll;
+        if(typeof req.files !== "undefined") {
+            let vid = req.files.flipVid;
+            let wasUploaded = req.body.uploadedFromCameraRoll;
 
-        if(vid && wasUploaded) {
-            flip.auth(req, function(auth) {
-                if(auth.response == "OK") {
-                    flip.post.create(vid.name, auth.data.info.clientID, wasUploaded, function(data0) {
-                        if(data0.response == "OK") {
-                            vid.mv(FL_VIDEO_PATH + data0.data.postID + ".mov", function(err) {
-                                if(!err) {
-                                    new ffmpeg(FL_VIDEO_PATH + data0.data.postID + ".mov").screenshots({
+            // Generate processing ID
+            let processingID = flip.tools.gen.randomString(5);
+
+            let processingVidPath = "./processing/vid/" + processingID + ".mov";
+
+            if(vid && wasUploaded) {
+                flip.auth(req, function(auth) {
+                    if(auth.response == "OK") {
+                        // Move video to temporary directory
+                        vid.mv(processingVidPath, function(mvErr) {
+                            if(!mvErr) {
+                                if(fs.existsSync(processingVidPath)) {
+                                    // Create screenshots from ffmpeg from temp dir
+                                    new ffmpeg(processingVidPath).screenshots({
                                         timestamps: [ 0 ],
-                                        filename: data0.data.postID + ".png",
-                                        folder: FL_THUMB_PATH
-                                    });
+                                        filename: processingID + ".png",
+                                        folder: "./processing/scr/"
+                                    }).on("end", function() {
+                                        let postID = flip.tools.gen.postID();
 
-                                    res.send({
-                                        response: "OK"
+                                        fs.readFile("./processing/scr/" + processingID + ".png", function(err0, data0) {
+                                            if(!err0) {
+                                                let videoExtension = vid.name.split(".")[vid.name.split(".").length - 1];
+
+                                                // Setup parameters for S3 PUT request
+                                                let vParams = {
+                                                    Key: postID + "." + videoExtension,
+                                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/videos",
+                                                    Body: vid.data
+                                                }, sParams = {
+                                                    Key: postID + ".png",
+                                                    Bucket: process.env.BUCKETEER_BUCKET_NAME + "/public/thumbnails",
+                                                    Body: data0
+                                                };
+
+                                                // Put screenshot update w/o callback
+                                                s3.putObject(sParams, function(err1, data1) {
+                                                    if(!err1) {
+                                                        // success
+                                                    } else {
+                                                        // error
+                                                    }
+                                                });
+                                                
+                                                // Put video update w/ callback
+                                                s3.putObject(vParams, function(err1, data1) {
+                                                    // If an error occured
+                                                    if(err1) {
+                                                        // Create the appropeate error and callback
+                                                        let err = flip.tools.res.ERR;
+                                                        res.status(err.statusCode).send(err);
+                
+                                                        cleanup(processingID);
+                                                    } else {
+                                                        flip.post.create(vid.name, postID, auth.data.info.clientID, wasUploaded, function(data2) {
+                                                            if(data2.response == "OK") {
+                                                                // Callback with response OK
+                                                                res.send({
+                                                                    response: "OK",
+                                                                    data: {
+                                                                        postID: postID
+                                                                    },
+                                                                    statusCode: 200
+                                                                });
+                                                            } else {
+                                                                res.status(data2.statusCode || FL_DEFAULT_STATUS).send(data2);
+        
+                                                                cleanup(processingID);
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            } else {
+                                                console.log("read file screenshot err")
+                                                let err = flip.tools.res.ERR;
+                                                res.status(err.statusCode).send(err);
+                                            }
+                                        });
                                     });
                                 } else {
-                                    res.send(flip.tools.res.ERR);
+                                    console.log("move video file error")
+                                    let err = flip.tools.res.ERR;
+                                    res.status(err.statusCode).send(err);
                                 }
-                            });
-                        } else {
-                            res.status(data0.statusCode || 200).send(data0)
-                        }
-                    });
-                } else {
-                    res.status(auth.statusCode || 200).send(auth);
-                }
-            });
+                            } else {
+                                // Create the appropeate error and callback
+                                let err = flip.tools.res.ERR;
+                                res.status(err.statusCode).send({
+                                    response: err.response,
+                                    formattedTitle: err.formattedTitle,
+                                    formattedResponse: err.formattedResponse,
+                                    data: mvErr,
+                                    statusCode: err.statusCode
+                                });
+                            }
+                        });
+                    } else {
+                        let err = flip.tools.res.INSUFFICIANT_PARAMS;
+                        res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
+                    }
+                });
+            } else {
+                let err = flip.tools.res.INSUFFICIANT_PARAMS;
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
+
+                cleanup(processingID);
+            }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
+
+            cleanup(processingID);
         }
     });
 
@@ -746,22 +831,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.destroy(postID, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -777,22 +862,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.caption.edit(caption, postID, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     })
 
@@ -808,13 +893,13 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.search.hashtag(hashtag, index, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
@@ -836,22 +921,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.interaction.like.create(auth.data.info.clientID, postID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -864,22 +949,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.interaction.like.destroy(auth.data.info.clientID, postID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -895,22 +980,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.likes.get(postID, index, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -926,22 +1011,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.comments.get(postID, index, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -957,22 +1042,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.interaction.comment.create(comment, auth.data.info.clientID, postID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -988,22 +1073,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.post.interaction.comment.destroy(commentID, auth.data.info.clientID, postID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -1018,22 +1103,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.feed.get(auth.data.info.clientID, index, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -1047,22 +1132,22 @@ module.exports = function(flip) {
                         flip.explore.get(auth.data.info.clientID, index, false, function(data0) {
 
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -1072,7 +1157,7 @@ module.exports = function(flip) {
             data0.meta.tagline = "A new home for short, looping videos.";
             data0.meta.isTwitterLoginEnabled = true;
 
-            res.status(data0.statusCode || 200).send(data0);
+            res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
         })
     })
 
@@ -1086,22 +1171,22 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.user.get.posts(clientID, index, auth.data.info.clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         });
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
                 let err = flip.tools.res.INVALID_PARAMS;
-                res.status(err.statusCode || 200).send(err);
+                res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
             }
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -1119,18 +1204,18 @@ module.exports = function(flip) {
                 if(auth.response == "OK") {
                     flip.report.create(auth.data.info.clientID, idToReport, type, reason, details, function(data0) {
                         if(data0.response == "OK") {
-                            res.status(data0.statusCode || 200).send(data0);
+                            res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                         } else {
-                            res.status(data0.statusCode || 200).send(data0);
+                            res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                         }
                     });
                 } else {
-                    res.status(auth.statusCode || 200).send(auth);
+                    res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                 }
             });
         } else {
             let err = flip.tools.res.INSUFFICIANT_PARAMS;
-            res.status(err.statusCode || 200).send(err);
+            res.status(err.statusCode || FL_DEFAULT_STATUS).send(err);
         }
     });
 
@@ -1250,7 +1335,7 @@ module.exports = function(flip) {
 
         if(accessToken && accessTokenSecret) {
             flip.user.loginWithTwitter(accessToken, accessTokenSecret, function(data0) {
-                res.status(data0.statusCode || 200).send(data0);
+                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
             })
         } else {
             res.send(flip.tools.res.INSUFFICIANT_PARAMS);
@@ -1311,9 +1396,9 @@ module.exports = function(flip) {
                     if(auth0.response == "OK") {
                         flip.chat.thread.create(auth0.data.info.clientID, clientID, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
@@ -1339,9 +1424,9 @@ module.exports = function(flip) {
                             if(auth1.response == "OK") {
                                 flip.chat.thread.destroy(threadID, function(data0) {
                                     if(data0.response == "OK") {
-                                        res.status(data0.statusCode || 200).send(data0)
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                                     } else {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     }
                                 })
                             } else {
@@ -1372,9 +1457,9 @@ module.exports = function(flip) {
                             if(auth1.response == "OK") {
                                 flip.chat.thread.message.send(message, threadID, auth0.data.info.clientID, function(data0) {
                                     if(data0.response == "OK") {
-                                        res.status(data0.statusCode || 200).send(data0)
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                                     } else {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     }
                                 })
                             } else {
@@ -1405,9 +1490,9 @@ module.exports = function(flip) {
                             if(auth1.response == "OK") {
                                 flip.chat.thread.message.destroy(messageID, threadID, auth0.data.info.clientID, function(data0) {
                                     if(data0.response == "OK") {
-                                        res.status(data0.statusCode || 200).send(data0)
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                                     } else {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     }
                                 })
                             } else {
@@ -1438,9 +1523,9 @@ module.exports = function(flip) {
                             if(auth1.response == "OK") {
                                 flip.chat.thread.get(threadID, auth0.data.info.clientID, function(data0) {
                                     if(data0.response == "OK") {
-                                        res.status(data0.statusCode || 200).send(data0)
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                                     } else {
-                                        res.status(data0.statusCode || 200).send(data0);
+                                        res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                                     }
                                 })
                             } else {
@@ -1468,13 +1553,13 @@ module.exports = function(flip) {
                     if(auth.response == "OK") {
                         flip.chat.user.threads.get(auth.data.info.clientID, index, function(data0) {
                             if(data0.response == "OK") {
-                                res.status(data0.statusCode || 200).send(data0)
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0)
                             } else {
-                                res.status(data0.statusCode || 200).send(data0);
+                                res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
                             }
                         })
                     } else {
-                        res.status(auth.statusCode || 200).send(auth);
+                        res.status(auth.statusCode || FL_DEFAULT_STATUS).send(auth);
                     }
                 });
             } else {
@@ -1485,5 +1570,5 @@ module.exports = function(flip) {
         }
     });
 
-    return app
+    return app;
 }
