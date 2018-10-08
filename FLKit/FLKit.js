@@ -111,7 +111,7 @@ let developmentAPNSProvider = new apn.Provider(developmentAPN);
 
 // CLEAN ARRAY EXTENSION
 Array.prototype.clean = (deleteValue) => {
-    for(var i = 0; i < this.length; i++) {
+    for(let i = 0; i < this.length; i++) {
         if(this[i] == deleteValue) {
             this.splice(i, 1);
             i--;
@@ -241,7 +241,7 @@ const flip = {
                 }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            var clientIDs = [];
+                            let clientIDs = [];
 
                             for(i = 0; i < docs0.length; i++) {
                                 clientIDs.splice(i, 0, docs0[i].info.clientID)
@@ -344,14 +344,14 @@ const flip = {
                 }).limit(1, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            var exploreLimit = 10
-                            var exploreData = docs0[0].data
+                            let exploreLimit = 10
+                            let exploreData = docs0[0].data
 
                             exploreData = exploreData.slice(0, 10)
 
                             if(exploreData.length > 0) {
-                                var posts = []
-                                var processed = exploreData.length
+                                let posts = []
+                                let processed = exploreData.length
 
                                 exploreData.forEach((doc, i) => {
                                     if(doc.info.meta.type == "post") {
@@ -695,9 +695,9 @@ const flip = {
         },
         compile: {
             manual: (data, clientID, hasGotMoreItems, callback) => {
-                var processed = data.length;
+                let processed = data.length;
 
-                var meta = {
+                let meta = {
                     hasGotMoreItems: hasGotMoreItems
                 }
 
@@ -829,7 +829,7 @@ const flip = {
                 })
             },
             auto: (clientID, index, callback) => {
-                var exploreData = []
+                let exploreData = []
 
                 if(index == 0) {
                     exploreData.push()
@@ -940,8 +940,8 @@ const flip = {
                         if(docs0.length > 0) {
                             // if(true) {
                             if(docs0[0].info.feedCreatedAt > (Date.now() - (86400000 * 7)) || FL_SCREENSHOTS_ENABLED) {
-                                var exploreLimit = 10
-                                var exploreData = docs0[0].data
+                                let exploreLimit = 10
+                                let exploreData = docs0[0].data
 
                                 if(!inf) {
                                     exploreData = exploreData.slice(parseInt(index), parseInt(index) + 10)
@@ -1066,7 +1066,7 @@ const flip = {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 let clientIDs = [];
-                                var processed = docs0.length;
+                                let processed = docs0.length;
 
                                 for(i = 0; i < docs0.length; i++) {
                                     if(typeof docs0[i].settings.discovery !== "undefined") {
@@ -1102,7 +1102,7 @@ const flip = {
                             if(connectedServices.includes("twitter")) {
                                 let credentials = data.services["twitter"];
 
-                                var T = new Twit({
+                                let T = new Twit({
                                     consumer_key: dbConfig.twitter.consumer_key,
                                     consumer_secret: dbConfig.twitter.consumer_secret,
                                     access_token: credentials.accessToken,
@@ -1164,7 +1164,7 @@ const flip = {
                     }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.count == 0) {
-                                var T = new Twit({
+                                let T = new Twit({
                                     consumer_key: dbConfig.twitter.consumer_key,
                                     consumer_secret: dbConfig.twitter.consumer_secret,
                                     access_token: token,
@@ -1248,8 +1248,8 @@ const flip = {
                     if(!err0) {
                         if(docs0.length > 0) {
                             let currentGradient = docs0[0].profile.gradient;
-                            var availableGradients = gradients;
-                            var selectedGradientIndex = flip.tools.indexGradient(availableGradients, currentGradient)
+                            let availableGradients = gradients;
+                            let selectedGradientIndex = flip.tools.indexGradient(availableGradients, currentGradient)
 
                             if(typeof selectedGradientIndex === "undefined") {
                                 // availableGradients.splice(0, 0, docs0[0].profile.gradient)
@@ -1280,8 +1280,8 @@ const flip = {
                 })
             },
             update: (clientID, settings, callback) => {
-                var masterSettings = {};
-                var hasUpdated = false;
+                let masterSettings = {};
+                let hasUpdated = false;
 
                 if(typeof settings.name !== "undefined") {
                     if(flip.tools.validate.name(settings.name)) {
@@ -1346,7 +1346,7 @@ const flip = {
                 })
             },
             set: (clientID, key, state, type, callback) => {
-                var data = {
+                let data = {
                     $set: {}
                 };
 
@@ -1399,10 +1399,10 @@ const flip = {
                                                 "info.clientID": requesterClientID
                                             }, (err2, docs2) => {
                                                 if(!err2) {
-                                                    var safeData = {};
-                                                    var isFollowing = (docs0[0].profile.followers.indexOf(requesterClientID) > -1);
-                                                    var followsYou = (docs0[0].profile.following.indexOf(requesterClientID) > -1);
-                                                    var isBlocked = (docs2[0].profile.blocked.indexOf(clientID) > -1);
+                                                    let safeData = {};
+                                                    let isFollowing = (docs0[0].profile.followers.indexOf(requesterClientID) > -1);
+                                                    let followsYou = (docs0[0].profile.following.indexOf(requesterClientID) > -1);
+                                                    let isBlocked = (docs2[0].profile.blocked.indexOf(clientID) > -1);
 
                                                     safeData.info = {
                                                         clientID: docs0[0].info.clientID,
@@ -1498,7 +1498,7 @@ const flip = {
                 }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            var postIDs = []
+                            let postIDs = []
 
                             docs0.forEach((cDoc, i) => {
                                 postIDs.splice(i, 0, cDoc.data.postID)
@@ -1558,9 +1558,9 @@ const flip = {
             },
             multi: {
                 raw: (docs, clientID, callback) => {
-                    var result = [];
-                    var max0 = docs.length;
-                    var hasGotMoreItems = (docs.length > 9);
+                    let result = [];
+                    let max0 = docs.length;
+                    let hasGotMoreItems = (docs.length > 9);
 
                     flip.user.get.raw(clientID, (data0) => {
                         if(data0.response == "OK") {
@@ -1568,9 +1568,9 @@ const flip = {
 
                             docs.forEach((doc, i) => {
                                 if(doc.profile.blocked.indexOf(clientID) == -1) {
-                                    var isFollowing = doc.profile.followers.indexOf(clientID) > -1;
-                                    var isBlocked = user.profile.blocked.indexOf(doc.info.clientID) > -1;
-                                    var followsYou = doc.profile.following.indexOf(clientID) > -1;
+                                    let isFollowing = doc.profile.followers.indexOf(clientID) > -1;
+                                    let isBlocked = user.profile.blocked.indexOf(doc.info.clientID) > -1;
+                                    let followsYou = doc.profile.following.indexOf(clientID) > -1;
 
                                     let info = {
                                         clientID: doc.info.clientID,
@@ -1881,15 +1881,15 @@ const flip = {
             get: (clientID, index, requesterClientID, callback) => {
                 flip.user.get.raw(clientID, (data0) => {
                     if(data0.response == "OK") {
-                        var followers = data0.data.profile.followers;
-                        var following = data0.data.profile.following;
+                        let followers = data0.data.profile.followers;
+                        let following = data0.data.profile.following;
 
-                        var relationships = {
+                        let relationships = {
                             followers: [],
                             following: []
                         };
 
-                        var hasGotMoreItems = false;
+                        let hasGotMoreItems = false;
 
                         flip.user.get.multi.minified(followers, index, requesterClientID, (data1) => {
                             if(data1.data != null) {
@@ -2143,7 +2143,7 @@ const flip = {
                 }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            var hasCalledback = false;
+                            let hasCalledback = false;
                             for(i = 0; i < docs0.length; i++) {
                                 if(docs0[i].data.username.trim() == username.trim() && docs0[i].data.email.trim() == email.trim()) {
                                     if(!hasCalledback) {
@@ -2244,7 +2244,7 @@ const flip = {
             }).limit(15, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0 || FL_SCREENSHOTS_ENABLED) {
-                        var processed = docs0.length;
+                        let processed = docs0.length;
 
                         let apsHashtags = [
                             {
@@ -2443,8 +2443,8 @@ const flip = {
         },
         multi: {
             handle: (docs, cID, callback) => {
-                var dataCount = docs.length;
-                var hasGotMorePosts = (docs.length > 9)
+                let dataCount = docs.length;
+                let hasGotMorePosts = (docs.length > 9)
 
                 docs.forEach((cDoc, i) => {
                     if(cDoc.info.meta.type == "post") {
@@ -2639,7 +2639,7 @@ const flip = {
                 }).skip(parseInt(index)).limit(10, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            var comments = docs0;
+                            let comments = docs0;
                             if(comments.length > 0) {
                                 flip.post.comments.multi.handle(comments, clientID, (data1) => {
                                     if(data1.response == "OK") {
@@ -2673,8 +2673,8 @@ const flip = {
             },
             multi: {
                 handle: (comments, clientID, callback) => {
-                    var dataCount = comments.length;
-                    var hasGotMoreItems = (comments.length > 9)
+                    let dataCount = comments.length;
+                    let hasGotMoreItems = (comments.length > 9)
 
                     comments.forEach((cDoc, i) => {
                         db.users.find({
@@ -2901,7 +2901,7 @@ const flip = {
             },
             comment: {
                 create: (comment, clientID, postID, callback) => {
-                    var commentID = flip.tools.gen.commentID();
+                    let commentID = flip.tools.gen.commentID();
 
                     db.posts.find({
                         "info.postID": postID
@@ -2979,7 +2979,7 @@ const flip = {
             }
         },
         create: (vID, clientID, wasUploaded, callback) => {
-            var postID = flip.tools.gen.postID();
+            let postID = flip.tools.gen.postID();
 
             db.posts.insert({
                 info: {
@@ -3108,10 +3108,10 @@ const flip = {
             }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
-                        var following = docs0[0].profile.following;
+                        let following = docs0[0].profile.following;
                         following.push(docs0[0].info.clientID);
 
-                        var query = {
+                        let query = {
                             "info.postedBy": {
                                 $in: following
                             }
@@ -3238,8 +3238,8 @@ const flip = {
             }).limit(10).skip(parseInt(index), (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
-                        var processed = docs0.length;
-                        var hasGotMorePosts = (docs0.length > 9)
+                        let processed = docs0.length;
+                        let hasGotMorePosts = (docs0.length > 9)
 
                         docs0.forEach((doc, i) => {
                             delete docs0[i]._id;
@@ -3366,7 +3366,7 @@ const flip = {
         },
         create: (content, type, postID, forClientID, fromClientID) => {
             if(forClientID !== fromClientID) {
-                var data = {
+                let data = {
                     info: {
                         notificationID: flip.tools.gen.notificationID(),
                         notificationAt: Date.now(),
@@ -3478,7 +3478,7 @@ const flip = {
                                 // if there are no notifications
                                 if(docs0.length == 0) {
                                     // set the notification type to the given type
-                                    var notificationType = type;
+                                    let notificationType = type;
 
                                     // if the type is cmention (comment mention, specific), set the type to plain "mention"
                                     if(notificationType == "cMention") {
@@ -3513,7 +3513,7 @@ const flip = {
             }
         },
         remove: (type, postID, forClientID, fromClientID) => {
-            var query = {}
+            let query = {}
 
             if(type == "follow") {
                 query = {
@@ -3576,8 +3576,8 @@ const flip = {
                 if(!err0) {
                     if(docs0.length > 0) {
                         if(docs0[0].info.deviceToken !== null && docs0[0].info.deviceToken !== "") {
-                            var deviceToken = docs0[0].info.deviceToken;
-                            var note = new apn.Notification();
+                            let deviceToken = docs0[0].info.deviceToken;
+                            let note = new apn.Notification();
 
                             if(data.alertDevice || typeof data.alertDevice == "undefined") {
                                 note.mutableContent = 1;
@@ -3683,7 +3683,7 @@ const flip = {
         threads: {
             handle: {
                 multi: (docs, clientID, totalMessageCount, callback) => {
-                    var processed = docs.length;
+                    let processed = docs.length;
 
                     docs.forEach((doc, i) => {
                         let participents = doc.info.threadParticipents;
@@ -3748,9 +3748,9 @@ const flip = {
         messages: {
             handle: {
                 multi: (docs, clientID, callback) => {
-                    var processed = docs.length;
+                    let processed = docs.length;
 
-                    var newMessages = [];
+                    let newMessages = [];
 
                     if(docs.length > 0) {
                         docs.forEach((doc, i) => {
@@ -3891,7 +3891,7 @@ const flip = {
             },
             message: {
                 send: (message, threadID, clientID, callback) => {
-                    var messageData = {
+                    let messageData = {
                         info: {
                             messageID: flip.tools.gen.messageID(),
                             messageSentAt: Date.now(),
@@ -4431,9 +4431,9 @@ const flip = {
                 return flip.tools.gen.customRandomString(possible, length);
             },
             customRandomString: (lPossible, length) => {
-                var text = "";
-                for (var i = 0; i < length; i++) {
-                    var newChar = lPossible.charAt(Math.floor(Math.random() * lPossible.length));
+                let text = "";
+                for (let i = 0; i < length; i++) {
+                    let newChar = lPossible.charAt(Math.floor(Math.random() * lPossible.length));
                     if (newChar == text[text.length - 1]) {
                         i--;
                     } else {
@@ -4473,7 +4473,7 @@ const flip = {
                 return flip.tools.gen.randomString(5);
             },
             tDef: (inp) => {
-                var possibleT = [
+                let possibleT = [
                     "s",
                     "m",
                     "h",
@@ -4494,7 +4494,7 @@ const flip = {
                 } else if(inp == "a year ago") {
                     return "1y"
                 } else if(possibleT.indexOf(inp.split(" ")[1][0])) {
-                    var timeType = inp.split(" ")[1][0];
+                    let timeType = inp.split(" ")[1][0];
 
                     if(timeType == "m") {
                         if(inp.indexOf("minute") == -1) {
