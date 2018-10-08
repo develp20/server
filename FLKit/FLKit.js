@@ -1472,13 +1472,13 @@ const flip = {
                         }
                     });
                 },
-                username: function(username, requesterClientID, callback) {
+                username: (username, requesterClientID, callback) => {
                     db.users.find({
                         "info.username": new RegExp(["^", username, "$"].join(""), "i")
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
-                                flip.user.get.safe.clientID(docs0[0].info.clientID, requesterClientID, function(data0) {
+                                flip.user.get.safe.clientID(docs0[0].info.clientID, requesterClientID, (data0) => {
                                     callback(data0);
                                 });
                             } else {
@@ -1490,17 +1490,17 @@ const flip = {
                     })
                 }
             },
-            bookmarks: function(clientID, index, callback) {
+            bookmarks: (clientID, index, callback) => {
                 db.bookmarks.find({
                     "info.bookmarkedBy": clientID
                 }).skip(parseInt(index)).limit(parseInt(index) + 20).sort({
                     "info.bookmarkedAt": -1
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             var postIDs = []
 
-                            docs0.forEach(function(cDoc, i) {
+                            docs0.forEach((cDoc, i) => {
                                 postIDs.splice(i, 0, cDoc.data.postID)
 
                                 if(i == docs0.length - 1) {
@@ -1510,10 +1510,10 @@ const flip = {
                                         }
                                     }).sort({
                                         "info.postedAt": -1
-                                    }, function(err1, docs1) {
+                                    }, (err1, docs1) => {
                                         if(!err1) {
                                             if(docs1.length > 0) {
-                                                flip.post.multi.handle(docs1, clientID, function(data0) {
+                                                flip.post.multi.handle(docs1, clientID, (data0) => {
                                                     callback(data0);
                                                 });
                                             } else {
@@ -1533,15 +1533,15 @@ const flip = {
                     }
                 })
             },
-            posts: function(clientID, index, fromClientID, callback) {
+            posts: (clientID, index, fromClientID, callback) => {
                 db.posts.find({
                     "info.postedBy": clientID
                 }).sort({
                     "info.postedAt": -1
-                }).skip(parseInt(index)).limit(20, function(err0, docs0) {
+                }).skip(parseInt(index)).limit(20, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            flip.post.multi.handle(docs0, fromClientID, function(docs2) {
+                            flip.post.multi.handle(docs0, fromClientID, (docs2) => {
                                 callback(docs2);
                             });
                         } else {
@@ -1557,16 +1557,16 @@ const flip = {
                 });
             },
             multi: {
-                raw: function(docs, clientID, callback) {
+                raw: (docs, clientID, callback) => {
                     var result = [];
                     var max0 = docs.length;
                     var hasGotMoreItems = (docs.length > 9);
 
-                    flip.user.get.raw(clientID, function(data0) {
+                    flip.user.get.raw(clientID, (data0) => {
                         if(data0.response == "OK") {
                             let user = data0.data;
 
-                            docs.forEach(function(doc, i) {
+                            docs.forEach((doc, i) => {
                                 if(doc.profile.blocked.indexOf(clientID) == -1) {
                                     var isFollowing = doc.profile.followers.indexOf(clientID) > -1;
                                     var isBlocked = user.profile.blocked.indexOf(doc.info.clientID) > -1;
@@ -1630,17 +1630,17 @@ const flip = {
                         }
                     })
                 },
-                minified: function(clientIDs, index, clientID, callback) {
-                    flip.user.get.raw(clientID, function(data0) {
+                minified: (clientIDs, index, clientID, callback) => {
+                    flip.user.get.raw(clientID, (data0) => {
                         if(data0.response == "OK") {
                             db.users.find({
                                 "info.clientID": {
                                     $in: clientIDs
                                 }
-                            }).skip(parseInt(index)).limit(10, function(err1, docs1) {
+                            }).skip(parseInt(index)).limit(10, (err1, docs1) => {
                                 if(!err1) {
                                     if(docs1.length > 0) {
-                                        flip.user.get.multi.raw(docs1, clientID, function(data0) {
+                                        flip.user.get.multi.raw(docs1, clientID, (data0) => {
                                             callback(data0);
                                         })
                                     } else {
@@ -1662,7 +1662,7 @@ const flip = {
                         }
                     })
                 },
-                search: function(query, clientID, callback) {
+                search: (query, clientID, callback) => {
                     if(query.length > 0) {
                         let searchRe = new RegExp("^" + query, "i");
 
@@ -1675,10 +1675,10 @@ const flip = {
                                     "profile.name": searchRe
                                 }
                             ]
-                        }).limit(10, function(err, docs) {
+                        }).limit(10, (err, docs) => {
                             if(!err) {
                                 if(docs.length > 0) {
-                                    flip.user.get.multi.raw(docs, clientID, function(data0) {
+                                    flip.user.get.multi.raw(docs, clientID, (data0) => {
                                         callback(data0);
                                     })
                                 } else {
@@ -1700,7 +1700,7 @@ const flip = {
                         });
                     }
                 },
-                prepare: function(query) {
+                prepare: (query) => {
                     return [
                         {
                             info: {
@@ -1731,7 +1731,7 @@ const flip = {
             }
         },
         bookmark: {
-            create: function(postID, clientID, callback) {
+            create: (postID, clientID, callback) => {
                 db.bookmarks.insert({
                     info: {
                         bookmarkID: flip.tools.gen.bookmarkID(),
@@ -1741,7 +1741,7 @@ const flip = {
                     data: {
                         postID: postID
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1749,7 +1749,7 @@ const flip = {
                     }
                 });
             },
-            destroy: function(postID, clientID, callback) {
+            destroy: (postID, clientID, callback) => {
                 db.bookmarks.remove({
                     $and: [
                         {
@@ -1759,7 +1759,7 @@ const flip = {
                             "info.bookmarkedBy": clientID
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1769,7 +1769,7 @@ const flip = {
             }
         },
         block: {
-            create: function(forClientID, fromClientID, callback) {
+            create: (forClientID, fromClientID, callback) => {
                 db.users.update({
                     "info.clientID": forClientID
                 }, {
@@ -1789,7 +1789,7 @@ const flip = {
                         "profile.followers": forClientID,
                         "profile.following": forClientID
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1797,7 +1797,7 @@ const flip = {
                     }
                 })
             },
-            destroy: function(forClientID, fromClientID, callback) {
+            destroy: (forClientID, fromClientID, callback) => {
                 db.users.update({
                     "info.clientID": fromClientID
                 }, {
@@ -1805,7 +1805,7 @@ const flip = {
                         "profile.blocked": forClientID,
                         "profile.followers": forClientID
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -1815,7 +1815,7 @@ const flip = {
             }
         },
         update: {
-            deviceToken: function(clientID, deviceToken) {
+            deviceToken: (clientID, deviceToken) => {
                 db.users.update({
                     "info.clientID": clientID
                 }, {
@@ -1824,10 +1824,10 @@ const flip = {
                     }
                 });
             },
-            email: function(clientID, email, callback) {
+            email: (clientID, email, callback) => {
                 db.users.find({
                     "security.email": email
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length == 0) {
                             db.users.update({
@@ -1836,7 +1836,7 @@ const flip = {
                                 $set: {
                                     "security.email": email
                                 }
-                            }, function(err1, docs1) {
+                            }, (err1, docs1) => {
                                 if(!err1) {
                                     callback(flip.tools.res.SUCCESS);
                                 } else {
@@ -1851,8 +1851,8 @@ const flip = {
                     }
                 })
             },
-            username: function(clientID, username, callback) {
-                flip.user.get.raw(clientID, function(data0) {
+            username: (clientID, username, callback) => {
+                flip.user.get.raw(clientID, (data0) => {
                     if(data0.response == "OK") {
                         if(username.toLowerCase() == data0.data.info.username.toLowerCase()) {
                             db.users.update({
@@ -1861,7 +1861,7 @@ const flip = {
                                 $set: {
                                     "info.username": username
                                 }
-                            }, function(err1, docs1) {
+                            }, (err1, docs1) => {
                                 if(!err1) {
                                     callback(flip.tools.res.SUCCESS);
                                 } else {
@@ -1878,8 +1878,8 @@ const flip = {
             }
         },
         relationships: {
-            get: function(clientID, index, requesterClientID, callback) {
-                flip.user.get.raw(clientID, function(data0) {
+            get: (clientID, index, requesterClientID, callback) => {
+                flip.user.get.raw(clientID, (data0) => {
                     if(data0.response == "OK") {
                         var followers = data0.data.profile.followers;
                         var following = data0.data.profile.following;
@@ -1891,7 +1891,7 @@ const flip = {
 
                         var hasGotMoreItems = false;
 
-                        flip.user.get.multi.minified(followers, index, requesterClientID, function(data1) {
+                        flip.user.get.multi.minified(followers, index, requesterClientID, (data1) => {
                             if(data1.data != null) {
                                 relationships.followers = data1.data;
 
@@ -1900,7 +1900,7 @@ const flip = {
                                 }
                             }
 
-                            flip.user.get.multi.minified(following, index, requesterClientID, function(data2) {
+                            flip.user.get.multi.minified(following, index, requesterClientID, (data2) => {
                                 if(data2.data != null) {
                                     relationships.following = data2.data;
 
@@ -1925,7 +1925,7 @@ const flip = {
                 })
             }
         },
-        loginWithTwitter: function(accessToken, accessTokenSecret, callback) {
+        loginWithTwitter: (accessToken, accessTokenSecret, callback) => {
             db.users.find({
                 $and: [
                     {
@@ -1935,7 +1935,7 @@ const flip = {
                         "services.twitter.accessTokenSecret": accessTokenSecret
                     }
                 ]
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         if(timedOutUsers.indexOf(docs0[0].info.clientID) == -1) {
@@ -1960,14 +1960,14 @@ const flip = {
                 }
             })
         },
-        login: function(email, password, callback) {
+        login: (email, password, callback) => {
             db.users.find({
                 $and: [
                     {
                         "security.email": email
                     }
                 ]
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         if(bcrypt.compareSync(password, docs0[0].security.password)) {
@@ -2008,7 +2008,7 @@ const flip = {
                 }
             })
         },
-        create: function(username, email, password, twitterData, callback) {
+        create: (username, email, password, twitterData, callback) => {
             let usernameRe = new RegExp(["^", username, "$"].join(""), "i");
             let emailRe = new RegExp(["^", email, "$"].join(""), "i");
 
@@ -2021,10 +2021,10 @@ const flip = {
                         "security.email": emailRe
                     }
                 ]
-            }, function(err, docs) {
+            }, (err, docs) => {
                 if(!err) {
                     if(docs.length == 0) {
-                        flip.user.reservation.check(username, email, function(data0) {
+                        flip.user.reservation.check(username, email, (data0) => {
                             if(data0.response == "OK") {
                                 let saltRounds = 10;
                                 let salt = bcrypt.genSaltSync(saltRounds);
@@ -2039,7 +2039,7 @@ const flip = {
                                 if(typeof twitterData.tokens.token !== "undefined" && typeof twitterData.tokens.secret !== "undefined") {
                                     userObj.services.connected.push("twitter")
 
-                                    flip.user.service.connect(userObj.info.clientID, twitterData, function(data0) {})
+                                    flip.user.service.connect(userObj.info.clientID, twitterData, (data0) => {})
                                 }
 
                                 db.users.update({
@@ -2053,9 +2053,9 @@ const flip = {
                                 let msg = {
                                     to: email,
                                     from: "flip <support@flip.wtf>",
-                                    subject: "👋 Welcome to flip, @" + username + "!",
+                                    subject: `👋 Welcome to flip, @${username}!`,
                                     html: `<img src="https://flip.wtf/assets/img/flip_logoDark.png" style="height: 100px" />
-                                    <h3>Hey @` + username + `, welcome to flip!</h3>
+                                    <h3>Hey @${username}, welcome to flip!</h3>
                                     We're so happy that you're here. If you need any help, just email us at <a href="mailto:support@flip.wtf">support@flip.wtf</a> and we'll be happy to help.</br>
                                     We can't wait to see what you post on flip. See you there!</br></br>
                                     -Team Flip`
@@ -2077,11 +2077,11 @@ const flip = {
                 }
             });
         },
-        auth: function(clientID, sessionID, callback) {
-            flip.user.get(clientID, function(data0) {
+        auth: (clientID, sessionID, callback) => {
+            flip.user.get(clientID, (data0) => {
                 if(data0.response == "OK") {
                     if(data0.data[0].security.sessionID == sessionID) {
-                        console.log(data0.data[0].info.username + " just made a request!")
+                        console.log(`${data0.data[0].info.username} just made a request!`)
                         callback(flip.tools.res.SUCCESS);
                     } else {
                         callback(flip.tools.res.INVALID_CREDENTIALS);
@@ -2092,7 +2092,7 @@ const flip = {
             })
         },
         reservation: {
-            create: function(username, email, callback) {
+            create: (username, email, callback) => {
                 let usernameRe = new RegExp(["^", username, "$"].join(""), "i");
                 let emailRe = new RegExp(["^", email, "$"].join(""), "i");
 
@@ -2105,7 +2105,7 @@ const flip = {
                             "data.email": emailRe
                         }
                     ]
-                },function(err0, docs0) {
+                },(err0, docs0) => {
                     if(!err0) {
                         if(docs0.length == 0) {
                             let reservationID = flip.tools.gen.clientID();
@@ -2130,7 +2130,7 @@ const flip = {
                     }
                 });
             },
-            check: function(username, email, callback) {
+            check: (username, email, callback) => {
                 db.reservations.find({
                     $or: [
                         {
@@ -2140,7 +2140,7 @@ const flip = {
                             "data.email": email
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             var hasCalledback = false;
@@ -2169,14 +2169,14 @@ const flip = {
             }
         },
         interaction: {
-            follow: function(forClientID, fromClientID, callback) {
+            follow: (forClientID, fromClientID, callback) => {
                 db.users.update({
                     "info.clientID": forClientID
                 }, {
                     $addToSet: {
                         "profile.followers": fromClientID
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         flip.notification.create("", "follow", "", forClientID, fromClientID)
                     }
@@ -2189,7 +2189,7 @@ const flip = {
                     $addToSet: {
                         "profile.following": forClientID
                     }
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -2197,7 +2197,7 @@ const flip = {
                     }
                 });
             },
-            unfollow: function(forClientID, fromClientID, callback) {
+            unfollow: (forClientID, fromClientID, callback) => {
                 flip.notification.remove("follow", null, forClientID, fromClientID)
 
                 db.users.update({
@@ -2214,7 +2214,7 @@ const flip = {
                     $pull: {
                         "profile.following": forClientID
                     }
-                }, function(err, docs0) {
+                }, (err, docs0) => {
                     if(!err) {
                         callback(flip.tools.res.SUCCESS);
                     } else {
@@ -2225,7 +2225,7 @@ const flip = {
         }
     },
     hashtag: {
-        get: function(callback) {
+        get: (callback) => {
             db.hashtags.find({
                 $and: [
                     {
@@ -2241,7 +2241,7 @@ const flip = {
                 ]
             }).sort({
                 "data.usesLast24h": 1
-            }).limit(15, function(err0, docs0) {
+            }).limit(15, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0 || FL_SCREENSHOTS_ENABLED) {
                         var processed = docs0.length;
@@ -2313,7 +2313,7 @@ const flip = {
                 }
             });
         },
-        create: function(hashtag) {
+        create: (hashtag) => {
             hashtag = hashtag.toLowerCase()
 
             db.hashtags.insert({
@@ -2333,13 +2333,13 @@ const flip = {
                 }
             })
         },
-        remove: function(hashtag) {
+        remove: (hashtag) => {
             hashtag = hashtag.toLowerCase()
 
             if(hashtag.length > 0) {
                 db.hashtags.find({
                     "data.hashtag": hashtag
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             db.hashtags.update({
@@ -2354,13 +2354,13 @@ const flip = {
                 })
             }
         },
-        use: function(hashtag) {
+        use: (hashtag) => {
             if(hashtag.length > 0) {
                 hashtag = hashtag.toLowerCase()
 
                 db.hashtags.find({
                     "data.hashtag": hashtag
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             db.hashtags.update({
@@ -2383,13 +2383,13 @@ const flip = {
         }
     },
     post: {
-        get: function(postID, fromClientID, callback) {
+        get: (postID, fromClientID, callback) => {
             db.posts.find({
                 "info.postID": postID
-            }, function(err, docs0) {
+            }, (err, docs0) => {
                 if(!err) {
                     if(docs0.length > 0) {
-                        flip.post.multi.handle(docs0, fromClientID, function(data0) {
+                        flip.post.multi.handle(docs0, fromClientID, (data0) => {
                             if(data0.response == "OK") {
                                 if(data0.data.length > 0) {
                                     callback({
@@ -2413,7 +2413,7 @@ const flip = {
             })
         },
         search: {
-            hashtag: function(hashtag, index, clientID, callback) {
+            hashtag: (hashtag, index, clientID, callback) => {
                 hashtag = hashtag.toLowerCase()
 
                 db.posts.find({
@@ -2422,7 +2422,7 @@ const flip = {
                     },
                 }).sort({
                     "data.uses.last24h": -1,
-                }).skip(parseInt(index)).limit(10, function(err0, docs0) {
+                }).skip(parseInt(index)).limit(10, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length == 0) {
                             callback({
@@ -2431,7 +2431,7 @@ const flip = {
                                 statusCode: 200
                             });
                         } else {
-                            flip.post.multi.handle(docs0, clientID, function(data0) {
+                            flip.post.multi.handle(docs0, clientID, (data0) => {
                                 callback(data0)
                             })
                         }
@@ -2442,19 +2442,19 @@ const flip = {
             }
         },
         multi: {
-            handle: function(docs, cID, callback) {
+            handle: (docs, cID, callback) => {
                 var dataCount = docs.length;
                 var hasGotMorePosts = (docs.length > 9)
 
-                docs.forEach(function(cDoc, i) {
+                docs.forEach((cDoc, i) => {
                     if(cDoc.info.meta.type == "post") {
                         db.users.find({
                             "info.clientID": cDoc.info.postedBy
-                        }, function(err0, uDocs) {
+                        }, (err0, uDocs) => {
                             if(!err0) {
                                 if(uDocs.length > 0) {
                                     if(uDocs[0].profile.blocked.indexOf(cID) == -1) {
-                                        flip.post.comments.count(cDoc.info.postID, function(data0) {
+                                        flip.post.comments.count(cDoc.info.postID, (data0) => {
                                             if(data0.response == "OK") {
                                                 db.bookmarks.find({
                                                     $and: [
@@ -2465,7 +2465,7 @@ const flip = {
                                                             "data.postID": cDoc.info.postID
                                                         }
                                                     ]
-                                                }, function(err1, docs1) {
+                                                }, (err1, docs1) => {
                                                     if(!err1) {
                                                         cDoc.profile = {
                                                             name: uDocs[0].profile.name,
@@ -2596,14 +2596,14 @@ const flip = {
                 });
             }
         },
-        view: function(postID, callback) {
+        view: (postID, callback) => {
             db.posts.update({
                 "info.postID": postID
             }, {
                 $inc: {
                     "data.stats.raw.views": 1
                 }
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     callback(flip.tools.res.SUCCESS);
                 } else {
@@ -2612,13 +2612,13 @@ const flip = {
             });
         },
         likes: {
-            get: function(postID, index, clientID, callback) {
+            get: (postID, index, clientID, callback) => {
                 db.posts.find({
                     "info.postID": postID
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            flip.user.get.multi.minified(docs0[0].data.stats.detailed.likedBy, index, clientID, function(data0) {
+                            flip.user.get.multi.minified(docs0[0].data.stats.detailed.likedBy, index, clientID, (data0) => {
                                 callback(data0);
                             })
                         } else {
@@ -2631,17 +2631,17 @@ const flip = {
             },
         },
         comments: {
-            get: function(postID, index, clientID, callback) {
+            get: (postID, index, clientID, callback) => {
                 db.comments.find({
                     "info.commentedOn": postID
                 }).sort({
                     "info.commentedAt": -1
-                }).skip(parseInt(index)).limit(10, function(err0, docs0) {
+                }).skip(parseInt(index)).limit(10, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             var comments = docs0;
                             if(comments.length > 0) {
-                                flip.post.comments.multi.handle(comments, clientID, function(data1) {
+                                flip.post.comments.multi.handle(comments, clientID, (data1) => {
                                     if(data1.response == "OK") {
                                         callback({
                                             response: "OK",
@@ -2672,14 +2672,14 @@ const flip = {
                 });
             },
             multi: {
-                handle: function(comments, clientID, callback) {
+                handle: (comments, clientID, callback) => {
                     var dataCount = comments.length;
                     var hasGotMoreItems = (comments.length > 9)
 
-                    comments.forEach(function(cDoc, i) {
+                    comments.forEach((cDoc, i) => {
                         db.users.find({
                             "info.clientID": cDoc.info.commentedBy
-                        }, function(err, uDocs) {
+                        }, (err, uDocs) => {
                             if(!err) {
                                 if(uDocs.length > 0) {
                                     if(uDocs[0].profile.blocked.indexOf(clientID) == -1) {
@@ -2766,10 +2766,10 @@ const flip = {
                     });
                 }
             },
-            count: function(postID, callback) {
+            count: (postID, callback) => {
                 db.comments.find({
                     "info.commentedOn": postID
-                }).count(function(err0, docs0) {
+                }).count((err0, docs0) => {
                     if(!err0) {
                         callback({
                             response: "OK",
@@ -2791,7 +2791,7 @@ const flip = {
             }
         },
         caption: {
-            edit: function(caption, postID, clientID, callback) {
+            edit: (caption, postID, clientID, callback) => {
                 db.posts.find({
                     $and: [
                         {
@@ -2801,7 +2801,7 @@ const flip = {
                             "info.postedBy": clientID
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         let oldCaption = docs0[0].data.caption
                         let oldWords = oldCaption.split(" ")
@@ -2841,7 +2841,7 @@ const flip = {
                             $set: {
                                 "data.caption": caption
                             }
-                        }, function(err0, docs0) {
+                        }, (err0, docs0) => {
                             if(!err0) {
                                 callback(flip.tools.res.SUCCESS);
                             } else {
@@ -2856,10 +2856,10 @@ const flip = {
         },
         interaction: {
             like: {
-                create: function(clientID, postID, callback) {
+                create: (clientID, postID, callback) => {
                     db.posts.find({
                         "info.postID": postID
-                    }).limit(1, function(err0, docs0) {
+                    }).limit(1, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 flip.notification.create("", "like", postID, docs0[0].info.postedBy, clientID)
@@ -2873,7 +2873,7 @@ const flip = {
                         $addToSet: {
                             "data.stats.detailed.likedBy": clientID
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -2881,7 +2881,7 @@ const flip = {
                         }
                     });
                 },
-                destroy: function(clientID, postID, callback) {
+                destroy: (clientID, postID, callback) => {
                     flip.notification.remove("like", postID, null, clientID)
 
                     db.posts.update({
@@ -2890,7 +2890,7 @@ const flip = {
                         $pull: {
                             "data.stats.detailed.likedBy": clientID
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS)
                         } else {
@@ -2900,12 +2900,12 @@ const flip = {
                 }
             },
             comment: {
-                create: function(comment, clientID, postID, callback) {
+                create: (comment, clientID, postID, callback) => {
                     var commentID = flip.tools.gen.commentID();
 
                     db.posts.find({
                         "info.postID": postID
-                    }).limit(1, function(err0, docs0) {
+                    }).limit(1, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 flip.notification.create(comment, "comment", postID, docs0[0].info.postedBy, clientID)
@@ -2923,7 +2923,7 @@ const flip = {
                         "data": {
                             "comment": comment
                         }
-                    }, function(err0, result0) {
+                    }, (err0, result0) => {
                         if(!err0) {
                             let words = comment.split(" ");
 
@@ -2931,7 +2931,7 @@ const flip = {
                                 if(words[i][0] == "@") {
                                     db.users.find({
                                         "info.username": words[i].replace("@", "")
-                                    }, function(err1, docs1) {
+                                    }, (err1, docs1) => {
                                         if(!err1) {
                                             if(docs1.length > 0) {
                                                 flip.notification.create(comment, "cMention", postID, docs1[0].info.clientID, clientID)
@@ -2953,7 +2953,7 @@ const flip = {
                         }
                     })
                 },
-                destroy: function(commentID, clientID, postID, callback) {
+                destroy: (commentID, clientID, postID, callback) => {
                     flip.notification.remove("comment", postID, null, clientID)
 
                     db.comments.remove({
@@ -2968,7 +2968,7 @@ const flip = {
                                 "info.commentedBy": clientID
                             }
                         ]
-                    }, function(err0, result0) {
+                    }, (err0, result0) => {
                         if(!err0) {
                             callback(flip.tools.res.SUCCESS);
                         } else {
@@ -2978,7 +2978,7 @@ const flip = {
                 }
             }
         },
-        create: function(vID, clientID, wasUploaded, callback) {
+        create: (vID, clientID, wasUploaded, callback) => {
             var postID = flip.tools.gen.postID();
 
             db.posts.insert({
@@ -3010,7 +3010,7 @@ const flip = {
                         }
                     }
                 }
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     callback({
                         response: "OK",
@@ -3024,10 +3024,10 @@ const flip = {
                 }
             });
         },
-        destroy: function(postID, clientID, callback) {
+        destroy: (postID, clientID, callback) => {
             db.posts.find({
                 "info.postID": postID
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         let caption = docs0[0].data.caption;
@@ -3048,7 +3048,7 @@ const flip = {
                                     "info.postedBy": clientID
                                 }
                             ]
-                        }, function(err1, docs1) {
+                        }, (err1, docs1) => {
                             if(!err1) {
                                 callback(flip.tools.res.SUCCESS);
 
@@ -3102,10 +3102,10 @@ const flip = {
         }
     },
     feed: {
-        get: function(clientID, index, callback) {
+        get: (clientID, index, callback) => {
             db.users.find({
                 "info.clientID": clientID
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         var following = docs0[0].profile.following;
@@ -3134,10 +3134,10 @@ const flip = {
                             timeQuery = {};
                         }
 
-                        db.posts.find(query).sort(timeQuery).skip(parseInt(index)).limit(10, function(err1, docs1) {
+                        db.posts.find(query).sort(timeQuery).skip(parseInt(index)).limit(10, (err1, docs1) => {
                             if(!err1) {
                                 if(docs1.length > 0) {
-                                    flip.post.multi.handle(docs1, clientID, function(docs2) {
+                                    flip.post.multi.handle(docs1, clientID, (docs2) => {
                                         if(docs2.response == "OK") {
                                             if(docs2.data.length < 10) {
                                                 docs2.data.push({
@@ -3184,7 +3184,7 @@ const flip = {
         }
     },
     report: {
-        create: function(clientID, idToReport, type, reason, details, callback) {
+        create: (clientID, idToReport, type, reason, details, callback) => {
             db.reports.insert({
                 info: {
                     reportID: flip.tools.gen.clientID(),
@@ -3200,11 +3200,11 @@ const flip = {
                     details: details,
                     assocID: idToReport
                 }
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     callback({
                         response: "OK",
-                        formattedTitle: flip.tools.gen.smart(type) + " Successfully Reported",
+                        formattedTitle: `${flip.tools.gen.smart(type)} Successfully Reported`,
                         formattedResponse: "We've successfully recieved your report, and we'll review it as soon as possible. Thanks for making flip a better place for everybody!",
                         statusCode: 200
                     });
@@ -3215,8 +3215,8 @@ const flip = {
         },
     },
     notification: {
-        get: function(clientID, index, callback) {
-            flip.user.get.raw(clientID, function(data0) {
+        get: (clientID, index, callback) => {
+            flip.user.get.raw(clientID, (data0) => {
                 if(data0.response == "OK") {
                     let data = data0.data;
                     if(data.info.meta.unreadNotifications > 0) {
@@ -3235,18 +3235,18 @@ const flip = {
                 "info.users.for": clientID
             }).sort({
                 "info.notificationAt": -1
-            }).limit(10).skip(parseInt(index), function(err0, docs0) {
+            }).limit(10).skip(parseInt(index), (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         var processed = docs0.length;
                         var hasGotMorePosts = (docs0.length > 9)
 
-                        docs0.forEach(function(doc, i) {
+                        docs0.forEach((doc, i) => {
                             delete docs0[i]._id;
 
                             let fromClientID = doc.info.users.from;
 
-                            flip.user.get.raw(fromClientID, function(data0) {
+                            flip.user.get.raw(fromClientID, (data0) => {
                                 if(data0.response == "OK") {
                                     if(data0.data.profile.blocked.indexOf(clientID) == -1) {
                                         if(typeof doc !== "undefined") {
@@ -3364,7 +3364,7 @@ const flip = {
                 }
             })
         },
-        create: function(content, type, postID, forClientID, fromClientID) {
+        create: (content, type, postID, forClientID, fromClientID) => {
             if(forClientID !== fromClientID) {
                 var data = {
                     info: {
@@ -3465,7 +3465,7 @@ const flip = {
 
 
                 // get user doc of action performer
-                flip.user.get.raw(fromClientID, function(data0) {
+                flip.user.get.raw(fromClientID, (data0) => {
                     if(data0.response == "OK") {
                         // set 'data' equal to that users data
                         let uData = data0.data
@@ -3473,7 +3473,7 @@ const flip = {
                         pushData.body = pushData.body.replace("{USERNAME}", uData.info.username)
 
                         // find notifications in db w/ same body (same note)
-                        db.notifications.find(query, function(err0, docs0) {
+                        db.notifications.find(query, (err0, docs0) => {
                             if(!err0) {
                                 // if there are no notifications
                                 if(docs0.length == 0) {
@@ -3489,12 +3489,12 @@ const flip = {
                                     db.notifications.insert(data);
 
                                     // get the setting of the users preference if that type of notification should be sent
-                                    flip.user.setting.get(forClientID, notificationType, "notification", function(shouldSend) {
+                                    flip.user.setting.get(forClientID, notificationType, "notification", (shouldSend) => {
                                         // set a variable indicating this
                                         pushData.alertDevice = shouldSend
 
                                         // get the user document of the user who is recieving the notification
-                                        flip.user.get.raw(forClientID, function(data1) {
+                                        flip.user.get.raw(forClientID, (data1) => {
                                             // if all is okay
                                             if(data1.response == "OK") {
                                                 // set unread notifications count to the amount of unread notifications that user has
@@ -3512,7 +3512,7 @@ const flip = {
                 })
             }
         },
-        remove: function(type, postID, forClientID, fromClientID) {
+        remove: (type, postID, forClientID, fromClientID) => {
             var query = {}
 
             if(type == "follow") {
@@ -3569,10 +3569,10 @@ const flip = {
                 }
             })
         },
-        send: function(data) {
+        send: (data) => {
             db.users.find({
                 "info.clientID": data.forClientID
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         if(docs0[0].info.deviceToken !== null && docs0[0].info.deviceToken !== "") {
@@ -3583,7 +3583,7 @@ const flip = {
                                 note.mutableContent = 1;
 
                                 if(data.forPostID != "") {
-                                    note.aps["attachment-url"] = "https://flip.wtf/thumbnails/" + data.forPostID + ".png"
+                                    note.aps["attachment-url"] = `https://flip.wtf/thumbnails/${data.forPostID}.png`
                                     note.aps["imageIs3by4"] = true
                                 } else {
                                     note.aps["imageIs3by4"] = false
@@ -3609,10 +3609,10 @@ const flip = {
                                 if(result0.failed.length > 0) {
                                     console.log("Failed! Attempting resend to developer device...");
                                     developmentAPNSProvider.send(note, deviceToken).then((result1) => {
-                                        console.log("Sent sent developer notification to " + docs0[0].info.username + "!")
+                                        console.log(`Sent sent developer notification to ${docs0[0].info.username}!`)
                                     });
                                 } else {
-                                    console.log("Sent notification to " + docs0[0].info.username + "!")
+                                    console.log(`Sent notification to ${docs0[0].info.username}!`)
                                 }
                             });
                         }
@@ -3620,10 +3620,10 @@ const flip = {
                 }
             })
         },
-        sendToPoster: function(body, postID) {
+        sendToPoster: (body, postID) => {
             db.posts.find({
                 "info.postID": postID
-            }, function(err0, docs0) {
+            }, (err0, docs0) => {
                 if(!err0) {
                     if(docs0.length > 0) {
                         flip.notification.send(body, docs0[0].info.postedBy);
@@ -3636,7 +3636,7 @@ const flip = {
         FL_LIVE_TYPING_KEYS: {},
         FL_LIVE_TYPING_USERS: {},
         user: {
-            auth: function(clientID, threadID, callback) {
+            auth: (clientID, threadID, callback) => {
                 db.chat.find({
                     $and: [
                         {
@@ -3646,7 +3646,7 @@ const flip = {
                             "info.threadID": threadID
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             callback(flip.tools.res.SUCCESS);
@@ -3659,15 +3659,15 @@ const flip = {
                 })
             },
             threads: {
-                get: function(clientID, index, callback) {
+                get: (clientID, index, callback) => {
                     db.chat.find({
                         "info.threadParticipents": clientID
                     }).sort({
                         "info.threadLastUpdatedAt": -1
-                    }).skip(parseInt(index)).limit(10, function(err0, docs0) {
+                    }).skip(parseInt(index)).limit(10, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
-                                flip.chat.threads.handle.multi(docs0, clientID, 10, function(data0) {
+                                flip.chat.threads.handle.multi(docs0, clientID, 10, (data0) => {
                                     callback(data0);
                                 })
                             } else {
@@ -3682,10 +3682,10 @@ const flip = {
         },
         threads: {
             handle: {
-                multi: function(docs, clientID, totalMessageCount, callback) {
+                multi: (docs, clientID, totalMessageCount, callback) => {
                     var processed = docs.length;
 
-                    docs.forEach(function(doc, i) {
+                    docs.forEach((doc, i) => {
                         let participents = doc.info.threadParticipents;
                         let messages = doc.data.messages;
                         let messageCount = messages.length;
@@ -3717,11 +3717,11 @@ const flip = {
                                 otherParticipent = participents[0]
                             }
 
-                            flip.user.get.safe.clientID(otherParticipent, clientID, function(data0) {
+                            flip.user.get.safe.clientID(otherParticipent, clientID, (data0) => {
                                 if(data0.response == "OK") {
                                     doc.participents[otherParticipent] = data0.data
 
-                                    flip.chat.messages.handle.multi(doc.data.messages, clientID, function(data1) {
+                                    flip.chat.messages.handle.multi(doc.data.messages, clientID, (data1) => {
                                         if(data1.response == "OK") {
                                             doc.data.messages = data1.data
 
@@ -3747,13 +3747,13 @@ const flip = {
         },
         messages: {
             handle: {
-                multi: function(docs, clientID, callback) {
+                multi: (docs, clientID, callback) => {
                     var processed = docs.length;
 
                     var newMessages = [];
 
                     if(docs.length > 0) {
-                        docs.forEach(function(doc, i) {
+                        docs.forEach((doc, i) => {
                             doc.info.messageSentAgo = flip.tools.gen.tDef(moment(doc.info.messageSentAt).local().fromNow())
 
                             newMessages.splice(0, 0, doc)
@@ -3776,7 +3776,7 @@ const flip = {
             }
         },
         thread: {
-            create: function(clientID, assocID, callback) {
+            create: (clientID, assocID, callback) => {
                 // check for existing chats, might have conflict in the future w/ group chats
                 db.chat.find({
                     $and: [
@@ -3787,7 +3787,7 @@ const flip = {
                             "info.threadParticipents": assocID
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length == 0) {
                             let thread = {
@@ -3805,9 +3805,9 @@ const flip = {
                                 }
                             }
 
-                            db.chat.insert(thread, function(err1, docs1) {
+                            db.chat.insert(thread, (err1, docs1) => {
                                 if(!err1) {
-                                    flip.chat.threads.handle.multi([thread], clientID, 10, function(data0) {
+                                    flip.chat.threads.handle.multi([thread], clientID, 10, (data0) => {
                                         if(data0.response == "OK") {
                                             callback({
                                                 response: "OK",
@@ -3822,7 +3822,7 @@ const flip = {
                                 }
                             })
                         } else {
-                            flip.chat.threads.handle.multi(docs0, clientID, 10, function(data0) {
+                            flip.chat.threads.handle.multi(docs0, clientID, 10, (data0) => {
                                 callback(data0);
                             })
                         }
@@ -3831,15 +3831,15 @@ const flip = {
                     }
                 });
             },
-            destroy: function(threadID, callback) {
+            destroy: (threadID, callback) => {
                 db.chat.find({
                     "info.threadID": threadID
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
                             db.chat.remove({
                                 "info.threadID": threadID
-                            }, function(err1, docs1) {
+                            }, (err1, docs1) => {
                                 if(!err1) {
                                     callback({
                                         response: "OK"
@@ -3856,7 +3856,7 @@ const flip = {
                     }
                 })
             },
-            get: function(threadID, clientID, callback) {
+            get: (threadID, clientID, callback) => {
                 db.chat.find({
                     $and: [
                         {
@@ -3866,10 +3866,10 @@ const flip = {
                             "info.threadParticipents": clientID
                         }
                     ]
-                }, function(err0, docs0) {
+                }, (err0, docs0) => {
                     if(!err0) {
                         if(docs0.length > 0) {
-                            flip.chat.threads.handle.multi(docs0, clientID, 100, function(data0) {
+                            flip.chat.threads.handle.multi(docs0, clientID, 100, (data0) => {
                                 data0.data = data0.data[0];
 
                                 callback(data0);
@@ -3883,14 +3883,14 @@ const flip = {
                 })
             },
             gen: {
-                socketKey: function(threadID, participents) {
+                socketKey: (threadID, participents) => {
                     let key = md5(participents.join(threadID))
 
                     return key
                 }
             },
             message: {
-                send: function(message, threadID, clientID, callback) {
+                send: (message, threadID, clientID, callback) => {
                     var messageData = {
                         info: {
                             messageID: flip.tools.gen.messageID(),
@@ -3908,7 +3908,7 @@ const flip = {
 
                     db.chat.find({
                         "info.threadID": threadID
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             if(docs0.length > 0) {
                                 let socketKey = flip.chat.thread.gen.socketKey(docs0[0].info.threadID, docs0[0].info.threadParticipents)
@@ -3937,9 +3937,9 @@ const flip = {
                         $push: {
                             "data.messages": messageData
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
-                            flip.chat.messages.handle.multi([messageData], clientID, function(data0) {
+                            flip.chat.messages.handle.multi([messageData], clientID, (data0) => {
                                 if(data0.response == "OK") {
 
 
@@ -3960,7 +3960,7 @@ const flip = {
                         }
                     })
                 },
-                destroy: function(messageID, threadID, clientID, callback) {
+                destroy: (messageID, threadID, clientID, callback) => {
                     db.chat.update({
                         "info.threadID": threadID
                     }, {
@@ -3976,7 +3976,7 @@ const flip = {
                                 ]
                             }
                         }
-                    }, function(err0, docs0) {
+                    }, (err0, docs0) => {
                         if(!err0) {
                             callback({
                                 response: "OK"
@@ -4106,11 +4106,11 @@ const flip = {
                 statusCode: 406
             },
             USERNAME_INVALID_LENGTH: {
-                prep: function(inp) {
+                prep: (inp) => {
                     return {
                         response: "USERNAME_INVALID",
                         formattedTitle: "Username Invalid",
-                        formattedResponse: "Your username is invalid. It has to contain 15 or less characters. It is currently " + inp.length + " characters long.",
+                        formattedResponse: `Your username is invalid. It has to contain 15 or less characters. It is currently ${inp.length} characters long.`,
                         statusCode: 400
                     }
                 }
@@ -4134,7 +4134,7 @@ const flip = {
                 statusCode: 200
             }
         },
-        indexGradient: function(arrayMaster, array) {
+        indexGradient: (arrayMaster, array) => {
             for(i = 0; i < arrayMaster.length; i++) {
                 if(typeof array !== "undefined") {
                     if(arrayMaster[i][0] == array[0]) {
@@ -4150,7 +4150,7 @@ const flip = {
             }
         },
         validate: {
-            message: function(inp) {
+            message: (inp) => {
                 if(inp) {
                     if(inp.length > 0 && inp.length < 500) {
                         return true;
@@ -4159,7 +4159,7 @@ const flip = {
 
                 return false;
             },
-            threadID: function(inp) {
+            threadID: (inp) => {
                 if(inp) {
                     if(inp.length == 10) {
                         return true;
@@ -4168,7 +4168,7 @@ const flip = {
 
                 return false;
             },
-            messageID: function(inp) {
+            messageID: (inp) => {
                 if(inp) {
                     if(inp.length == 5) {
                         return true;
@@ -4177,7 +4177,7 @@ const flip = {
 
                 return false;
             },
-            key: function(inp) {
+            key: (inp) => {
                 if(inp) {
                     if(inp.length > 0 && inp.length < 30) {
                         return true;
@@ -4186,7 +4186,7 @@ const flip = {
 
                 return false;
             },
-            query: function(inp) {
+            query: (inp) => {
                 if(inp) {
                     if(inp.length > 0 && inp.length < 20) {
                         return true;
@@ -4195,7 +4195,7 @@ const flip = {
 
                 return false;
             },
-            hashtag: function(inp) {
+            hashtag: (inp) => {
                 if(inp) {
                     if(inp.length > 0) {
                         inp = inp.replace("#", "")
@@ -4207,7 +4207,7 @@ const flip = {
 
                 return false;
             },
-            serviceName: function(inp) {
+            serviceName: (inp) => {
                 if(inp) {
                     if(inp.length > 0 && inp.length < 50) {
                         if(inp == "twitter" || inp == "contacts") {
@@ -4218,7 +4218,7 @@ const flip = {
 
                 return false
             },
-            username: function(inp) {
+            username: (inp) => {
                 if(inp) {
                     if(typeof inp == "string") {
                         if(inp.length > 0 && inp.length < 16) {
@@ -4234,7 +4234,7 @@ const flip = {
 
                 return false;
             },
-            email: function(inp) {
+            email: (inp) => {
                 if(inp) {
                     if(inp.length > 0 && inp.length < 100) {
                         inp = inp.trim();
@@ -4246,7 +4246,7 @@ const flip = {
 
                 return false;
             },
-            password: function(inp) {
+            password: (inp) => {
                 if(inp) {
                     if(inp.length > 8 && inp.length < 100) {
                         return true;
@@ -4255,7 +4255,7 @@ const flip = {
 
                 return false;
             },
-            bio: function(inp) {
+            bio: (inp) => {
                 if(typeof inp === "string") {
                     if(inp.length < 140) {
                         return true;
@@ -4264,7 +4264,7 @@ const flip = {
 
                 return false;
             },
-            clientID: function(inp) {
+            clientID: (inp) => {
                 if(inp) {
                     if(inp.length == 15) {
                         return true;
@@ -4273,7 +4273,7 @@ const flip = {
 
                 return false;
             },
-            sessionID: function(inp) {
+            sessionID: (inp) => {
                 if(inp) {
                     if(inp.length == 25 || inp.length == 75) {
                         return true;
@@ -4282,7 +4282,7 @@ const flip = {
 
                 return false;
             },
-            postID: function(inp) {
+            postID: (inp) => {
                 if(inp) {
                     if(inp.length == 10) {
                         return true;
@@ -4291,7 +4291,7 @@ const flip = {
 
                 return false;
             },
-            name: function(inp) {
+            name: (inp) => {
                 if(inp) {
                     if(inp.length < 20 && /^[a-zA-Z ]+$/.test(inp)) {
                         return true;
@@ -4300,14 +4300,14 @@ const flip = {
 
                 return false;
             },
-            caption: function(inp) {
+            caption: (inp) => {
                 if(inp.length < 150) {
                     return true;
                 }
 
                 return false;
             },
-            comment: function(inp) {
+            comment: (inp) => {
                 if(inp) {
                     if(inp.length <= 500) {
                         return true;
@@ -4316,7 +4316,7 @@ const flip = {
 
                 return false;
             },
-            commentID: function(inp) {
+            commentID: (inp) => {
                 if(inp) {
                     if(inp.length == 5) {
                         return true;
@@ -4325,7 +4325,7 @@ const flip = {
 
                 return false;
             },
-            index: function(inp) {
+            index: (inp) => {
                 if(inp) {
                     if(inp.match(/^-{0,1}\d+$/)) {
                         return true;
@@ -4334,7 +4334,7 @@ const flip = {
 
                 return false;
             },
-            json: function(inp) {
+            json: (inp) => {
                 try {
                     JSON.parse(inp);
                 } catch (e) {
@@ -4345,7 +4345,7 @@ const flip = {
             }
         },
         gen: {
-            name: function(inp) {
+            name: (inp) => {
                 let name = inp;
                 let undSplitted = flip.tools.gen.splitAtCharacter(name, "_");
                 let dotSplitted = flip.tools.gen.splitAtCharacter(undSplitted, ".");
@@ -4353,22 +4353,22 @@ const flip = {
 
                 return trimmed
             },
-            splitAtCharacter: function(string, char) {
-                let splitted = string.split(char).map(function(word) { return word[0].toUpperCase() + word.substr(1).toLowerCase(); }).join(" ");
+            splitAtCharacter: (string, char) => {
+                let splitted = string.split(char).map((word) => { return word[0].toUpperCase() + word.substr(1).toLowerCase(); }).join(" ");
                 return splitted
             },
-            randomGradient: function() {
+            randomGradient: () => {
                 let index = Math.floor(Math.random() * gradients.length);
                 return gradients[index];
             },
-            smart: function(inp) {
+            smart: (inp) => {
                 if(inp.length > 0) {
                     return inp.charAt(0).toUpperCase() + inp.substr(1);
                 } else {
                     return inp;
                 }
             },
-            user: function(username, email) {
+            user: (username, email) => {
                 let clientID = flip.tools.gen.clientID();
                 let sessionID = flip.tools.gen.sessionID();
 
@@ -4424,13 +4424,13 @@ const flip = {
                     }
                 }
             },
-            numberWithCommas: function(x) {
+            numberWithCommas: (x) => {
                 return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             },
-            randomString: function(length) {
+            randomString: (length) => {
                 return flip.tools.gen.customRandomString(possible, length);
             },
-            customRandomString: function(lPossible, length) {
+            customRandomString: (lPossible, length) => {
                 var text = "";
                 for (var i = 0; i < length; i++) {
                     var newChar = lPossible.charAt(Math.floor(Math.random() * lPossible.length));
@@ -4442,37 +4442,37 @@ const flip = {
                 }
                 return text;
             },
-            clientID: function(inp) {
+            clientID: (inp) => {
                 return flip.tools.gen.randomString(15);
             },
-            sessionID: function(inp) {
+            sessionID: (inp) => {
                 return flip.tools.gen.randomString(75);
             },
-            postID: function() {
+            postID: () => {
                 return flip.tools.gen.randomString(10);
             },
-            commentID: function() {
+            commentID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            bookmarkID: function() {
+            bookmarkID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            cardID: function() {
+            cardID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            splitterID: function() {
+            splitterID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            notificationID: function() {
+            notificationID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            threadID: function() {
+            threadID: () => {
                 return flip.tools.gen.randomString(10);
             },
-            messageID: function() {
+            messageID: () => {
                 return flip.tools.gen.randomString(5);
             },
-            tDef: function(inp) {
+            tDef: (inp) => {
                 var possibleT = [
                     "s",
                     "m",
@@ -4507,7 +4507,7 @@ const flip = {
             }
         }
     },
-    addFieldToAllDocs: function() {
+    addFieldToAllDocs: () => {
         db.users.update({}, {
             $set: {
                 "security.isUsingJWTAuth": false,
@@ -4515,7 +4515,7 @@ const flip = {
             $unset: {
                 "security.discovery": ""
             }
-        }, { multi: true }, function(err0, docs0) {
+        }, { multi: true }, (err0, docs0) => {
             console.log(err0, docs0)
         })
     }
