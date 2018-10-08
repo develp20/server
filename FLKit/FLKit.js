@@ -108,7 +108,7 @@ module.exports = function(io, s3) {
     let developmentAPNSProvider = new apn.Provider(developmentAPN);
 
     // CLEAN ARRAY EXTENSION
-    Array.prototype.clean = (deleteValue) => {
+    Array.prototype.clean = function(deleteValue) {
         for(let i = 0; i < this.length; i++) {
             if(this[i] == deleteValue) {
                 this.splice(i, 1);
@@ -2978,8 +2978,6 @@ module.exports = function(io, s3) {
                 let postID = flip.tools.gen.postID();
                 
                 let bucketName = process.env.BUCKETEER_BUCKET_NAME;
-                                                            let streamURL = ;
-                                                            let thumbURL = "";
 
                 db.posts.insert({
                     info: {
@@ -4041,7 +4039,7 @@ module.exports = function(io, s3) {
                     response: "NO_ITEMS",
                     formattedTitle: "No Items Found",
                     formattedResponse: "Your query returned no items. Please adjust your query and try again.",
-                    statusCode: 204
+                    statusCode: 200
                 },
                 NO_DATA: {
                     response: "OK",
@@ -4049,7 +4047,7 @@ module.exports = function(io, s3) {
                     meta: {
                         hasGotMoreItems: false
                     },
-                    statusCode: 204
+                    statusCode: 200
                 },
                 SERVICE_UNKNOWN: {
                     response: "SERVICE_UNKNOWN",
