@@ -179,7 +179,7 @@ const flip = {
                                             }
                                         }
 
-                                        console.log(data0.data.info.username.toLowerCase() + " just made a request")
+                                        console.log(`${data0.data.info.username.toLowerCase()} just made a request`)
 
                                         callback({
                                             response: "OK",
@@ -1350,7 +1350,7 @@ const flip = {
                     $set: {}
                 };
 
-                data["$set"]["settings." + type + "." + key] = state;
+                data["$set"][`settings.${type}.${key}`] = state;
 
                 db.users.update({
                     "info.clientID": clientID
@@ -1664,7 +1664,7 @@ const flip = {
                 },
                 search: (query, clientID, callback) => {
                     if(query.length > 0) {
-                        let searchRe = new RegExp("^" + query, "i");
+                        let searchRe = new RegExp(`^${query}i`);
 
                         db.users.find({
                             $or: [
@@ -1711,7 +1711,7 @@ const flip = {
                                 }
                             },
                             data: {
-                                title: "@" + query.replace("@", "")
+                                title: `@${query.replace("@", "")}`
                             }
                         },
                         {
@@ -1723,7 +1723,7 @@ const flip = {
                                 }
                             },
                             data: {
-                                title: "#" + query.replace("#", "")
+                                title: `#${query.replace("#", "")}`
                             }
                         }
                     ];
@@ -2291,7 +2291,7 @@ const flip = {
 
                         for(i = 0; i < docs0.length; i++) {
                             if(!FL_SCREENSHOTS_ENABLED) {
-                                docs0[i].data.posts = docs0[i].data.uses.last24h + ""
+                                docs0[i].data.posts = `${docs0[i].data.uses.last24h}`
                             }
 
                             delete docs0[i]._id;
@@ -2418,7 +2418,7 @@ const flip = {
 
                 db.posts.find({
                     "data.caption": {
-                        $regex: new RegExp(".*#" + hashtag + ".*", "i")
+                        $regex: new RegExp(`.*#${hashtag}.*`, "i")
                     },
                 }).sort({
                     "data.uses.last24h": -1,
@@ -2506,9 +2506,9 @@ const flip = {
 
                                                         cDoc.data = {
                                                             caption: cDoc.data.caption,
-                                                            streamURL: "https://cdn.nuyr.io/videos/" + cDoc.info.postID + ".mov",
-                                                            // streamURL: "https://api.flip.wtf/v3/post/stream/" + cDoc.info.postID,
-                                                            thumbURL: "https://cdn.nuyr.io/thumbnails/" + cDoc.info.postID + ".png",
+                                                            streamURL: `https://cdn.nuyr.io/videos/${cDoc.info.postID}.mov`,
+                                                            // streamURL: `https://api.flip.wtf/v3/post/stream/${cDoc.info.postID}`,
+                                                            thumbURL: `https://cdn.nuyr.io/thumbnails/${cDoc.info.postID}.png`,
                                                             stats: {
                                                                 formatted: {
                                                                     views: shortNumber(Math.round(cDoc.data.stats.raw.views)) + "",
@@ -2998,8 +2998,8 @@ const flip = {
                 },
                 data: {
                     caption: "",
-                    streamURL: "/api/v2/post/stream/" + postID,
-                    thumbURL: "/api/v2/post/thumb/" + postID,
+                    streamURL: `/api/v2/post/stream/${postID}`,
+                    thumbURL: `/api/v2/post/thumb/${postID}`,
                     stats: {
                         raw: {
                             views: 0
@@ -3077,13 +3077,13 @@ const flip = {
                                     ]
                                 }, multi);
 
-                                fs.unlink(FL_VIDEO_PATH + postID + ".mov", (err) => {
+                                fs.unlink(`${FL_VIDEO_PATH}${postID}.mov`, (err) => {
                                     if(!err) {
                                         // deleted successfully
                                     }
                                 });
 
-                                fs.unlink(FL_THUMB_PATH + postID + ".png", (err) => {
+                                fs.unlink(`${FL_THUMB_PATH}${postID}.png`, (err) => {
                                     if(!err) {
                                         // deleted successfully
                                     }
@@ -3272,11 +3272,11 @@ const flip = {
                                             }
 
                                             // let prefix = "@" + doc.profile.username + " "
-                                            let prefix = "<b>" + doc.profile.username.toLowerCase() + "</b> "
+                                            let prefix = `<b>${doc.profile.username.toLowerCase()}</b> `
 
                                             if(doc.info.meta.detailType == "like") {
                                                 doc.data.title = "New Like"
-                                                doc.data.desc = prefix + "liked your post " + doc.info.notificationAgoLong + "."
+                                                doc.data.desc = `${prefix} liked your post ${doc.info.notificationAgoLong}.`
 
                                                 doc.data.gradient = [
                                                     "#F76B1C",
@@ -3284,7 +3284,7 @@ const flip = {
                                                 ]
                                             } else if(doc.info.meta.detailType == "follow") {
                                                 doc.data.title = "New Follower"
-                                                doc.data.desc = prefix + "followed you " + doc.info.notificationAgoLong + "."
+                                                doc.data.desc = `${prefix} followed you ${doc.info.notificationAgoLong}.`
 
                                                 doc.data.gradient = [
                                                     "#BA00FE",
@@ -3292,7 +3292,7 @@ const flip = {
                                                 ]
                                             } else if(doc.info.meta.detailType == "comment") {
                                                 doc.data.title = "New Comment"
-                                                doc.data.desc = prefix + "commented \"" + doc.data.content + "\" on your post " + doc.info.notificationAgoLong + "."
+                                                doc.data.desc = `${prefix}" commented \"${doc.data.content}\" on your post ${doc.info.notificationAgoLong}.`
 
                                                 doc.data.gradient = [
                                                     "#00A505",
@@ -3300,7 +3300,7 @@ const flip = {
                                                 ]
                                             } else if(doc.info.meta.detailType == "cMention") {
                                                 doc.data.title = "New Mention"
-                                                doc.data.desc = prefix + "mentioned you in their comment \"" + doc.data.content + "\"."
+                                                doc.data.desc = `${prefix} mentioned you in their comment \"${doc.data.content}\".`
 
                                                 doc.data.gradient = [
                                                     "#9F041B",
@@ -3420,7 +3420,7 @@ const flip = {
                     pushData.forPostID = postID
                 } else if(type == "comment") {
                     pushData.title = "New Comment"
-                    pushData.body = "@{USERNAME} just commented on your post: \"" + content + "\""
+                    pushData.body = `@{USERNAME} just commented on your post: \"${content}\"`
                     data.data.postID = postID
                     data.data.content = content
 
@@ -3436,7 +3436,7 @@ const flip = {
                     pushData.forPostID = postID
                 } else if(type == "cMention") {
                     pushData.title = "New Mention"
-                    pushData.body = "@{USERNAME} just mentioned you in their comment: \"" + content + "\""
+                    pushData.body = `@{USERNAME} just mentioned you in their comment: \"${content}\"`
 
                     data.data.postID = postID
                     data.data.content = content
