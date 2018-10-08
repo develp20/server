@@ -2976,6 +2976,10 @@ module.exports = function(io, s3) {
             },
             create: (vID, clientID, wasUploaded, callback) => {
                 let postID = flip.tools.gen.postID();
+                
+                let bucketName = process.env.BUCKETEER_BUCKET_NAME;
+                                                            let streamURL = ;
+                                                            let thumbURL = "";
 
                 db.posts.insert({
                     info: {
@@ -2994,8 +2998,8 @@ module.exports = function(io, s3) {
                     },
                     data: {
                         caption: "",
-                        streamURL: `/api/v2/post/stream/${postID}`,
-                        thumbURL: `/api/v2/post/thumb/${postID}`,
+                        streamURL: `https://${bucketName}.s3.us-east-1.amazonaws.com/public/videos/${postID}.mov`,
+                        thumbURL: `https://${bucketName}.s3.us-east-1.amazonaws.com/public/thumbnails/${postID}.png`,
                         stats: {
                             raw: {
                                 views: 0
