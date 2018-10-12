@@ -4,6 +4,8 @@ const logger = require("morgan");
 
 const app = express();
 
+require("dotenv").config();
+
 app.use(require("cors")({
     origin: "https://admin.flip.wtf"
 }));
