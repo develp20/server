@@ -3274,8 +3274,13 @@ module.exports = function(io, s3) {
                                                     doc.data.title = ""
                                                     doc.data.desc = ""
                                                 }
+                                                
+                                                
+                                                let bucketName = process.env.BUCKETEER_BUCKET_NAME;
+                                                let thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + doc.info.postID + ".png";
 
-                                                // let prefix = "@" + doc.profile.username + " "
+                                                doc.data.thumbURL = thumbURL
+
                                                 let prefix = `<b>${doc.profile.username.toLowerCase()}</b> `
 
                                                 if(doc.info.meta.detailType == "like") {
