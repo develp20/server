@@ -3274,12 +3274,6 @@ module.exports = function(io, s3) {
                                                     doc.data.title = ""
                                                     doc.data.desc = ""
                                                 }
-                                                
-                                                
-                                                let bucketName = process.env.BUCKETEER_BUCKET_NAME;
-                                                let thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + doc.info.postID + ".png";
-
-                                                doc.data.thumbURL = thumbURL
 
                                                 let prefix = `<b>${doc.profile.username.toLowerCase()}</b> `
 
@@ -3316,8 +3310,14 @@ module.exports = function(io, s3) {
                                                         "#F5515F"
                                                     ]
                                                 }
-                                            }
 
+                                                if(doc.info.meta.detailType != "follow") {
+                                                    let bucketName = process.env.BUCKETEER_BUCKET_NAME;
+                                                    let thumbURL = "https://" + bucketName + ".s3.us-east-1.amazonaws.com/public/thumbnails/" + doc.data.postID + ".png";
+    
+                                                    doc.data.thumbURL = thumbURL
+                                                }
+                                            }
 
                                             processed--;
                                             if(processed == 0) {
@@ -3325,7 +3325,6 @@ module.exports = function(io, s3) {
                                                     response: "OK",
                                                     data: docs0.clean(null),
                                                     meta: {
-                                                        hasGotMorePosts: hasGotMorePosts,
                                                         hasGotMoreItems: hasGotMorePosts
                                                     },
                                                     statusCode: 200
@@ -3340,7 +3339,6 @@ module.exports = function(io, s3) {
                                                     response: "OK",
                                                     data: docs0.clean(null),
                                                     meta: {
-                                                        hasGotMorePosts: hasGotMorePosts,
                                                         hasGotMoreItems: hasGotMorePosts
                                                     },
                                                     statusCode: 200
@@ -3356,7 +3354,6 @@ module.exports = function(io, s3) {
                                                 response: "OK",
                                                 data: docs0.clean(null),
                                                 meta: {
-                                                    hasGotMorePosts: hasGotMorePosts,
                                                     hasGotMoreItems: hasGotMorePosts
                                                 },
                                                 statusCode: 200
