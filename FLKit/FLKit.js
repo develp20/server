@@ -158,16 +158,22 @@ module.exports = function(io, s3) {
                                                 }
                                             }
 
+                                            let username = data0.data.info.username;
+
                                             let privileges = {
                                                 isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                                 canUploadVideos: true,
-                                                doesRequireWatermarkOnExport: !(data0.data.info.username == "william"),
+                                                doesRequireWatermarkOnExport: !(username == "william"),
                                                 timeLimit: 7.5,
                                                 server: {
                                                     BASE_URL: "https://nuyr.io",
                                                     BASE_API_URL: "https://api.flip.wtf/v4/",
                                                     BASE_SOCKET_URL: "https://api.flip.wtf/"
                                                 }
+                                            }
+
+                                            if(username == "fran") {
+                                                privileges.timeLimit = 30;
                                             }
 
                                             console.log(`${data0.data.info.username.toLowerCase()} just made a request`)
@@ -2013,6 +2019,8 @@ module.exports = function(io, s3) {
                                     let userObj = flip.tools.gen.user(username, email);
 
                                     userObj.security.password = hash;
+
+                                    delete userObj.security.token;
 
                                     db.users.insert(userObj);
 
