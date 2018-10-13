@@ -761,7 +761,7 @@ module.exports = function(flip, s3) {
                 
                                                         cleanup(processingID);
                                                     } else {
-                                                        flip.post.create(vid.name, postID, auth.data.info.clientID, wasUploaded, function(data2) {
+                                                        flip.post.create(postID, auth.data.info.clientID, wasUploaded, function(data2) {
                                                             if(data2.response == "OK") {
                                                                 // Callback with response OK
                                                                 res.send({

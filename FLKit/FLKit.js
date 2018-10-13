@@ -2974,9 +2974,7 @@ module.exports = function(io, s3) {
                     }
                 }
             },
-            create: (vID, clientID, wasUploaded, callback) => {
-                let postID = flip.tools.gen.postID();
-                
+            create: (postID, clientID, wasUploaded, callback) => {
                 let bucketName = process.env.BUCKETEER_BUCKET_NAME;
 
                 db.posts.insert({
