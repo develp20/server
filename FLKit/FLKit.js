@@ -2975,8 +2975,6 @@ module.exports = function(io, s3) {
                     },
                     data: {
                         caption: "",
-                        streamURL: `https://${bucketName}.s3.us-east-1.amazonaws.com/public/videos/${postID}.mov`,
-                        thumbURL: `https://${bucketName}.s3.us-east-1.amazonaws.com/public/thumbnails/${postID}.png`,
                         stats: {
                             raw: {
                                 views: 0
@@ -4488,31 +4486,19 @@ module.exports = function(io, s3) {
                     }
                 }
             }
+        },
+        addFieldToAllDocs: () => {
+            db.posts.update({}, {
+                $unset: {
+                    "data.streamURL": "",
+                    "data.thumbURL": ""
+                }
+            }, {
+                multi: true
+            }, (err1, docs1) => {
+                console.log(err1, docs1)
+            })
         }
-        // addFieldToAllDocs: () => {
-        //     db.posts.find({
-        //         "info.postedAt": {
-        //             $gt: 1539325400353
-        //         }
-        //     }, (err0, docs0) => {
-        //         console.log(err0, docs0.length)
-        //         if(!err0) {
-        //             docs0.forEach((doc, i) => {
-        //                 console.log(doc, i)
-        //                 db.posts.update({
-        //                     "_id": doc._id
-        //                 }, {
-        //                     $set: {
-        //                         "info.postedBy": doc.info.meta.wasUploaded,
-        //                         "info.meta.wasUploaded": false
-        //                     }
-        //                 }, (err1, doc1) => {
-        //                     console.log(err1, "done ", i)
-        //                 })
-        //             })
-        //         }
-        //     })
-        // }
     };
 
     return flip;   
