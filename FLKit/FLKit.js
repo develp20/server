@@ -26,9 +26,6 @@ module.exports = function(io, s3) {
     // JSON WEB TOKEN
     let jwt = require("jsonwebtoken");
 
-    // FS
-    let fs = require("fs");
-
     // DATABASE CONFIG
     let dbConfig = require("../config/config.json");
 
@@ -119,7 +116,7 @@ module.exports = function(io, s3) {
         return this;
     };
 
-    //
+    // SCREENSHOTS ENABLED FOR APP STORE
     let FL_SCREENSHOTS_ENABLED = false;
 
     const flip = {
@@ -829,8 +826,6 @@ module.exports = function(io, s3) {
                         exploreData.push()
                     }
 
-
-
                     db.posts.find({
                         $and: [
                             {
@@ -938,11 +933,11 @@ module.exports = function(io, s3) {
                                     let exploreData = docs0[0].data
 
                                     if(!inf) {
-                                        exploreData = exploreData.slice(parseInt(index), parseInt(index) + 10)
+                                        exploreData = exploreData.slice(parseInt(index), parseInt(index) + exploreLimit)
                                     }
 
                                     if(exploreData.length > 0) {
-                                        flip.explore.compile.manual(exploreData, clientID, !(exploreData.length < 10), (data0) => {
+                                        flip.explore.compile.manual(exploreData, clientID, !(exploreData.length < exploreLimit), (data0) => {
                                             if(data0.response == "OK") {
                                                 callback(data0)
                                             } else {
@@ -1231,45 +1226,36 @@ module.exports = function(io, s3) {
             settings: {
                 get: (clientID, callback) => {
                     // You're probably never gonna uncomment this but I'm making it ES6 anyways.
-                    // flip.user.get.raw(clientID, (data0) => {
-                    //     if(data0.response == "OK") {
+                    // lol i did
+                    flip.user.get.raw(clientID, (data0) => {
+                        if(data0.response == "OK") {
+                            let user = data0.data;
 
-                    //     } else {}
-                    // })
-                    db.users.find({
-                        "info.clientID": clientID
-                    }, (err0, docs0) => {
-                        if(!err0) {
-                            if(docs0.length > 0) {
-                                let currentGradient = docs0[0].profile.gradient;
-                                let availableGradients = gradients;
-                                let selectedGradientIndex = flip.tools.indexGradient(availableGradients, currentGradient)
+                            let currentGradient = user.profile.gradient;
+                            let availableGradients = gradients;
+                            let selectedGradientIndex = flip.tools.indexGradient(availableGradients, currentGradient)
 
-                                if(typeof selectedGradientIndex === "undefined") {
-                                    // availableGradients.splice(0, 0, docs0[0].profile.gradient)
-                                    selectedGradientIndex = 0
-                                }
-
-                                callback({
-                                    response: "OK",
-                                    data: {
-                                        name: docs0[0].profile.name,
-                                        bio: docs0[0].profile.bio,
-                                        gradients: {
-                                            type: "gradient",
-                                            selectedIndex: selectedGradientIndex,
-                                            gradients: availableGradients
-                                        },
-                                        connectedServices: docs0[0].services.connected,
-                                        settings: docs0[0].settings
-                                    },
-                                    statusCode: 200
-                                });
-                            } else {
-                                callback(flip.tools.res.NO_ITEMS);
+                            if(typeof selectedGradientIndex === "undefined") {
+                                selectedGradientIndex = 0
                             }
+
+                            callback({
+                                response: "OK",
+                                data: {
+                                    name: user.profile.name,
+                                    bio: user.profile.bio,
+                                    gradients: {
+                                        type: "gradient",
+                                        selectedIndex: selectedGradientIndex,
+                                        gradients: availableGradients
+                                    },
+                                    connectedServices: user.services.connected,
+                                    settings: user.settings
+                                },
+                                statusCode: 200
+                            });
                         } else {
-                            callback(flip.tools.res.ERR);
+                            callback(data0);
                         }
                     })
                 },
@@ -2474,13 +2460,8 @@ module.exports = function(io, s3) {
                                                                 postedBy: cDoc.info.postedBy,
                                                                 postedAt: cDoc.info.postedAt,
                                                                 time: {
-                                                                    // date: {
-                                                                    //     time: moment(cDoc.info.postedAt).format("hh:mm a"),
-                                                                    //     date: moment(cDoc.info.postedAt).format("Do MMMM YYYY"),
-                                                                    // },
                                                                     formatted: {
                                                                         short: flip.tools.gen.tDef(moment(cDoc.info.postedAt).local().fromNow()),
-                                                                        // long: moment(cDoc.info.postedAt).local().fromNow()
                                                                     }
                                                                 },
                                                                 meta: {
@@ -3396,7 +3377,6 @@ module.exports = function(io, s3) {
                     pushData.forClientID = forClientID
 
                     if(type == "follow") {
-                        // data.data
                         pushData.title = "New Follower"
                         pushData.body = "@{USERNAME} just followed you"
 
@@ -3464,9 +3444,7 @@ module.exports = function(io, s3) {
                         $inc: {
                             "info.meta.unreadNotifications": 1
                         }
-                    })
-
-
+                    });
 
                     // get user doc of action performer
                     flip.user.get.raw(fromClientID, (data0) => {
@@ -3507,13 +3485,13 @@ module.exports = function(io, s3) {
                                                     // send notification
                                                     flip.notification.send(pushData)
                                                 }
-                                            })
-                                        })
+                                            });
+                                        });
                                     }
                                 }
-                            })
+                            });
                         }
-                    })
+                    });
                 }
             },
             remove: (type, postID, forClientID, fromClientID) => {
@@ -3622,7 +3600,7 @@ module.exports = function(io, s3) {
                             }
                         }
                     }
-                })
+                });
             },
             sendToPoster: (body, postID) => {
                 db.posts.find({
@@ -4510,19 +4488,31 @@ module.exports = function(io, s3) {
                     }
                 }
             }
-        },
-        addFieldToAllDocs: () => {
-            db.users.update({}, {
-                $set: {
-                    "security.isUsingJWTAuth": false,
-                },
-                $unset: {
-                    "security.discovery": ""
-                }
-            }, { multi: true }, (err0, docs0) => {
-                console.log(err0, docs0)
-            })
         }
+        // addFieldToAllDocs: () => {
+        //     db.posts.find({
+        //         "info.postedAt": {
+        //             $gt: 1539325400353
+        //         }
+        //     }, (err0, docs0) => {
+        //         console.log(err0, docs0.length)
+        //         if(!err0) {
+        //             docs0.forEach((doc, i) => {
+        //                 console.log(doc, i)
+        //                 db.posts.update({
+        //                     "_id": doc._id
+        //                 }, {
+        //                     $set: {
+        //                         "info.postedBy": doc.info.meta.wasUploaded,
+        //                         "info.meta.wasUploaded": false
+        //                     }
+        //                 }, (err1, doc1) => {
+        //                     console.log(err1, "done ", i)
+        //                 })
+        //             })
+        //         }
+        //     })
+        // }
     };
 
     return flip;   
