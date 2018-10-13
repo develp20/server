@@ -117,7 +117,7 @@ module.exports = function(flip, s3) {
 
 // /user/services/*
 
-    app.get("/user/services/:name", (req, res) => {
+    app.post("/user/services/:name", (req, res) => {
         let name = req.params.name;
 
         if(name) {

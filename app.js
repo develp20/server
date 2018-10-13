@@ -107,5 +107,5 @@ io.on("connection", function(socket) {
 const port = process.env.PORT || 4000;
 
 server.listen(port, function() {
-    console.log("Listening on :" + port);
+    console.log("[FL-" + process.env.NODE_ENV + "] Listening on :" + port);
 });
