@@ -1,10 +1,4 @@
 module.exports = function(io, s3) {
-    // PROHIBITED USERNAMES
-    let prohibitedUsers = [
-        "7Gqertfaqdgo1wN", //BabyMarina
-        "8cUybaUC0ZBPLv5" //william
-    ];
-
     let hasChatCapabilities = [
         "8cUybaUC0ZBPLv5", // william
         "gcVKSxFv2hk3o8V", // flip
@@ -261,11 +255,7 @@ module.exports = function(io, s3) {
             posts: {
                 get: {
                     latest: (clientID, callback) => {
-                        db.posts.find({
-                            "info.postedBy": {
-                                $nin: prohibitedUsers
-                            }
-                        }).sort({
+                        db.posts.find({}).sort({
                             "info.postedAt": -1
                         }).limit(10, (err0, docs0) => {
                             if(!err0) {
@@ -299,11 +289,6 @@ module.exports = function(io, s3) {
                                 {
                                     "info.postedAt": {
                                         $gt: Date.now() - 86400000
-                                    }
-                                },
-                                {
-                                    "info.postedBy": {
-                                        $nin: prohibitedUsers
                                     }
                                 },
                                 {
@@ -837,11 +822,6 @@ module.exports = function(io, s3) {
                             {
                                 "info.postedAt": {
                                     $gt: Date.now() - (86400000 * 2)
-                                }
-                            },
-                            {
-                                "info.postedBy": {
-                                    $nin: prohibitedUsers
                                 }
                             }
                         ]
