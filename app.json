@@ -9,6 +9,7 @@
     ],
     "website": "https://github.com/flipwtf",
     "repository": "https://github.com/flipwtf/server",
+    "logo": "https://avatars1.githubusercontent.com/u/43852183",
     "env": {
         "JWT": {
             "description": "A secret key for verifying the integrity of signed cookies.",
