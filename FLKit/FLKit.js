@@ -84,19 +84,21 @@ module.exports = function(io, s3) {
 
     // APPLE PUSH NOTIFICATION SERVICE
     let apn = require("apn");
-
-    let productionAPN = {
-        token: dbConfig.apns,
-        production: true
-    };
-
-    let developmentAPN = {
-        token: dbConfig.apns,
-        production: false
-    };
-
-    let productionAPNSProvider = new apn.Provider(productionAPN);
-    let developmentAPNSProvider = new apn.Provider(developmentAPN);
+    
+    if(dbConfig.apns.keyId !== "") {
+        let productionAPN = {
+            token: dbConfig.apns,
+            production: true
+        };
+    
+        let developmentAPN = {
+            token: dbConfig.apns,
+            production: false
+        };
+    
+        var productionAPNSProvider = new apn.Provider(productionAPN);
+        var developmentAPNSProvider = new apn.Provider(developmentAPN);
+    }
 
     // CLEAN ARRAY EXTENSION
     Array.prototype.clean = function(deleteValue) {
@@ -3573,16 +3575,20 @@ module.exports = function(io, s3) {
 
                                 note.topic = "wtf.flip.ios";
 
-                                productionAPNSProvider.send(note, deviceToken).then((result0) => {
-                                    if(result0.failed.length > 0) {
-                                        console.log("Failed! Attempting resend to developer device...");
-                                        developmentAPNSProvider.send(note, deviceToken).then((result1) => {
-                                            console.log(`Sent sent developer notification to ${docs0[0].info.username}!`)
-                                        });
-                                    } else {
-                                        console.log(`Sent notification to ${docs0[0].info.username}!`)
-                                    }
-                                });
+                                if(dbConfig.apns.keyId !== "") {
+                                    productionAPNSProvider.send(note, deviceToken).then((result0) => {
+                                        if(result0.failed.length > 0) {
+                                            console.log("Failed! Attempting resend to developer device...");
+                                            developmentAPNSProvider.send(note, deviceToken).then((result1) => {
+                                                console.log(`Sent sent developer notification to ${docs0[0].info.username}!`)
+                                            });
+                                        } else {
+                                            console.log(`Sent notification to ${docs0[0].info.username}!`)
+                                        }
+                                    });
+                                } else {
+                                    console.log("Key ID is missing in config.json.")
+                                }
                             }
                         }
                     }
