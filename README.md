@@ -1,7 +1,7 @@
 # flip-Server
 The source of the official flip Server.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://github.com/flipwtf/server)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/flipwtf/server)
 
 ## What does this do?
 
