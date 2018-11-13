@@ -1,6 +1,8 @@
 # flip-Server
 The source of the official flip Server.
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://github.com/flipwtf/server)
+
 ## What does this do?
 
 flip is a video sharing app, sort of like Vine, but a lot faster paced (it's quicker to create + publish a video). This server handles requests.
