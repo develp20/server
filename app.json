@@ -1,0 +1,41 @@
+{
+    "name": "FLServer",
+    "description": "The core API for the open-source 7s video looping app, flip.",
+    "keywords": [
+        "app",
+        "vine",
+        "video",
+        "ios"
+    ],
+    "website": "https://github.com/flipwtf",
+    "repository": "https://github.com/flipwtf/server",
+    "logo": "https://avatars1.githubusercontent.com/u/43852183",
+    "env": {
+        "JWT": {
+            "description": "A secret key for verifying the integrity of signed cookies.",
+            "generator": "secret"
+        },
+        "NODE_ENV": {
+            "description": "The environment that the app is being run in.",
+            "value": "PRODUCTION"
+        },
+        "SG_KEY": {
+            "description": "Your SendGrid API key. You can obtain one for free at https://sendgrid.com."
+        }
+    },
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "free"
+        }
+    },
+    "image": "heroku/nodejs",
+    "addons": [
+        {
+            "plan": "bucketeer:hobbyist"
+        },
+        {
+            "plan": "mongolab:sandbox"
+        }
+    ]
+}
