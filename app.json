@@ -17,6 +17,9 @@
         "NODE_ENV": {
             "description": "The environment that the app is being run in.",
             "value": "PRODUCTION"
+        },
+        "SG_KEY": {
+            "description": "Your SendGrid API key. You can obtain one for free at https://sendgrid.com."
         }
     },
     "formation": {
