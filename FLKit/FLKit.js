@@ -169,7 +169,7 @@ module.exports = function(io, s3) {
                                             }
 
                                             if(username == "fran") {
-                                                privileges.timeLimit = 30;
+                                                privileges.timeLimit = 15;
                                             }
 
                                             console.log(`${data0.data.info.username.toLowerCase()} just made a request`)
