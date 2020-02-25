@@ -160,11 +160,11 @@ module.exports = function(io, s3) {
                                                 isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                                 canUploadVideos: true,
                                                 doesRequireWatermarkOnExport: !(username == "william"),
-                                                timeLimit: 7.5,
+                                                timeLimit: 20.0,
                                                 server: {
                                                     BASE_URL: "https://nuyr.io",
-                                                    BASE_API_URL: "https://api.flip.wtf/v4/",
-                                                    BASE_SOCKET_URL: "https://api.flip.wtf/"
+                                                    BASE_API_URL: "https://looopapi.herokuapp.com/v4/",
+                                                    BASE_SOCKET_URL: "https://looopapi.herokuapp.com/"
                                                 }
                                             }
 
@@ -456,7 +456,7 @@ module.exports = function(io, s3) {
                                         if(docs1.length > 0) {
                                             flip.notification.send({
                                                 forClientID: docs1[0].info.postedBy,
-                                                body: "✨ We just added your post to Explore for all of flip to see, check it out!",
+                                                body: "✨ We just added your post to Explore for all of Looop to see, check it out!",
                                                 forPostID: postID
                                             })
                                         }
@@ -519,7 +519,7 @@ module.exports = function(io, s3) {
                                 flip.explore.latestID((feedID) => {
                                     flip.notification.send({
                                         forClientID: docs0[0].info.clientID,
-                                        body: "✨ We just added you to Explore for all of flip to see, check it out!"
+                                        body: "✨ We just added you to Explore for all of Looop to see, check it out!"
                                     })
 
                                     db.explore.update({
@@ -2022,13 +2022,13 @@ module.exports = function(io, s3) {
 
                                     let msg = {
                                         to: email,
-                                        from: "flip <support@flip.wtf>",
-                                        subject: `👋 Welcome to flip, @${username}!`,
-                                        html: `<img src="https://flip.wtf/assets/img/flip_logoDark.png" style="height: 100px" />
-                                        <h3>Hey @${username}, welcome to flip!</h3>
-                                        We're so happy that you're here. If you need any help, just email us at <a href="mailto:support@flip.wtf">support@flip.wtf</a> and we'll be happy to help.</br>
-                                        We can't wait to see what you post on flip. See you there!</br></br>
-                                        -Team Flip`
+                                        from: "Looop <hello@looop.app>",
+                                        subject: `👋 Welcome to Looop, @${username}!`,
+                                        html: `
+                                        <h3>Hey @${username}, welcome to Looop!</h3>
+                                        We're so happy that you're here. If you need any help, just email us at <a href="mailto:hello@looop.app">hello@looop.app</a> and we'll be happy to help.</br>
+                                        We can't wait to see what you post on Looop. See you there!</br></br>
+                                        -Team Looop`
 
                                     }
 
@@ -3120,12 +3120,12 @@ module.exports = function(io, s3) {
                                                             }
                                                         },
                                                         data: {
-                                                            title: "Welcome to flip",
+                                                            title: "Welcome to Looop",
                                                             date: "",
-                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new flips every day, and swipe right to access your Profile.\n\nSee that big 'Tap to Record' button down there? Well, it does just that. Tap the button to bring up the Camera, where you can create short looping videos to share with your friends.\n\nTalking about friends, tap the button below to search your Contacts or Twitter in order to find friends on flip.\n\n We hope you enjoy using flip! Our username is @flip, so, uh, add us maybe?",
+                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new Looops every day, and swipe right to access your Profile.\n\n We hope you enjoy using Looop!",
                                                             gradient: [
-                                                                "#F76B1C",
-                                                                "#FAD961"
+                                                                "#000000",
+                                                                "#000000"
                                                             ],
                                                             action: {
                                                                 type: "openFindFriends",
@@ -3176,7 +3176,7 @@ module.exports = function(io, s3) {
                         callback({
                             response: "OK",
                             formattedTitle: `${flip.tools.gen.smart(type)} Successfully Reported`,
-                            formattedResponse: "We've successfully recieved your report, and we'll review it as soon as possible. Thanks for making flip a better place for everybody!",
+                            formattedResponse: "We've successfully recieved your report, and we'll review it as soon as possible. Thanks for making Looop a better place for everybody!",
                             statusCode: 200
                         });
                     } else {
@@ -3972,7 +3972,7 @@ module.exports = function(io, s3) {
                 TEMP_SUSPENDED: {
                     response: "TEMP_SUSPENDED",
                     formattedTitle: "Temporarily Suspended",
-                    formattedDesc: "Your account has been temporarily suspended.\n\nIf you think this has been done in error, please contact support@flip.wtf.",
+                    formattedDesc: "Your account has been temporarily suspended.\n\nIf you think this has been done in error, please contact hello@looop.app.",
                     statusCode: 401
                 },
                 ERR: {
@@ -4028,7 +4028,7 @@ module.exports = function(io, s3) {
                 NO_AUTH: {
                     response: "NO_AUTH",
                     formattedTitle: "Authentication Revoked",
-                    formattedResponse: "As you are not authenticated, we've automatically logged you out, so please log in again.\n\nStill facing issues? Email support@flip.wtf and we'll help you out.",
+                    formattedResponse: "As you are not authenticated, we've automatically logged you out, so please log in again.\n\nStill facing issues? Email hello@looop.app and we'll help you out.",
                     statusCode: 401
                 },
                 ACCOUNT_ALREADY_EXISTS: {
@@ -4366,7 +4366,7 @@ module.exports = function(io, s3) {
                         profile: {
                             name: flip.tools.gen.name(username),
                             bio: "This user has no bio.",
-                            profileImg: "https://cdn.nuyr.io/img/flip_defaultUserIcon.png",
+                            profileImg: "https://www.sackettwaconia.com/wp-content/uploads/default-profile.png",
                             gradient: flip.tools.gen.randomGradient(),
                             badges: [],
                             followers: [],
