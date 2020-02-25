@@ -3122,7 +3122,7 @@ module.exports = function(io, s3) {
                                                         data: {
                                                             title: "Welcome to Looop",
                                                             date: "",
-                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new Looops every day, and swipe right to access your Profile.\n\n We hope you enjoy using Looop!",
+                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new Looops every day, and swipe right to access your Profile.\n\nWe hope you enjoy using Looop!",
                                                             gradient: [
                                                                 "#000000",
                                                                 "#000000"
