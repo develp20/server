@@ -3127,10 +3127,6 @@ module.exports = function(io, s3) {
                                                                 "#000000",
                                                                 "#000000"
                                                             ],
-                                                            action: {
-                                                                type: "openFindFriends",
-                                                                title: "Find Friends"
-                                                            }
                                                         }
                                                     })
                                                 }
