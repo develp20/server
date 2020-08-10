@@ -1154,7 +1154,7 @@ module.exports = function(flip, s3) {
     app.get("/onboarding/posts", (req, res) => {
         flip.onboarding.get(function(data0) {
             data0.meta = {};
-            data0.meta.tagline = "A new home for short, looping videos.";
+            data0.meta.tagline = "A new home for short videos.";
             data0.meta.isTwitterLoginEnabled = true;
 
             res.status(data0.statusCode || FL_DEFAULT_STATUS).send(data0);
