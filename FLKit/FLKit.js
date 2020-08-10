@@ -163,8 +163,8 @@ module.exports = function(io, s3) {
                                                 timeLimit: 20.0,
                                                 server: {
                                                     BASE_URL: "https://nuyr.io",
-                                                    BASE_API_URL: "https://looopapi.herokuapp.com/v4/",
-                                                    BASE_SOCKET_URL: "https://looopapi.herokuapp.com/"
+                                                    BASE_API_URL: "https://api.tomtube.com/v4/",
+                                                    BASE_SOCKET_URL: "https://api.tomtube.com/"
                                                 }
                                             }
 
@@ -456,7 +456,7 @@ module.exports = function(io, s3) {
                                         if(docs1.length > 0) {
                                             flip.notification.send({
                                                 forClientID: docs1[0].info.postedBy,
-                                                body: "✨ We just added your post to Explore for all of Looop to see, check it out!",
+                                                body: "✨ We just added your post to Explore for all of TomTube to see, check it out!",
                                                 forPostID: postID
                                             })
                                         }
@@ -519,7 +519,7 @@ module.exports = function(io, s3) {
                                 flip.explore.latestID((feedID) => {
                                     flip.notification.send({
                                         forClientID: docs0[0].info.clientID,
-                                        body: "✨ We just added you to Explore for all of Looop to see, check it out!"
+                                        body: "✨ We just added you to Explore for all of TomTube to see, check it out!"
                                     })
 
                                     db.explore.update({
@@ -2022,13 +2022,13 @@ module.exports = function(io, s3) {
 
                                     let msg = {
                                         to: email,
-                                        from: "Looop <hello@looop.app>",
+                                        from: "TomTube <hello@tomtube.com>",
                                         subject: `👋 Welcome to Looop, @${username}!`,
                                         html: `
-                                        <h3>Hey @${username}, welcome to Looop!</h3>
-                                        We're so happy that you're here. If you need any help, just email us at <a href="mailto:hello@looop.app">hello@looop.app</a> and we'll be happy to help.</br>
-                                        We can't wait to see what you post on Looop. See you there!</br></br>
-                                        -Team Looop`
+                                        <h3>Hey @${username}, welcome to TomTue!</h3>
+                                        We're so happy that you're here. If you need any help, just email us at <a href="mailto:hello@tomtube.com">hello@tomtube.com</a> and we'll be happy to help.</br>
+                                        We can't wait to see what you post on TomTube. See you there!</br></br>
+                                        -Team TomTube`
 
                                     }
 
@@ -3120,9 +3120,9 @@ module.exports = function(io, s3) {
                                                             }
                                                         },
                                                         data: {
-                                                            title: "Welcome to Looop",
+                                                            title: "Welcome to TomTube",
                                                             date: "",
-                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new Looops every day, and swipe right to access your Profile.\n\nWe hope you enjoy using Looop!",
+                                                            desc: "We're glad you're here! You should probably get to know the place. Swipe left to access Explore, where we post new videos every day, and swipe right to access your Profile.\n\nWe hope you enjoy using TomTube!",
                                                             gradient: [
                                                                 "#000000",
                                                                 "#000000"
@@ -3172,7 +3172,7 @@ module.exports = function(io, s3) {
                         callback({
                             response: "OK",
                             formattedTitle: `${flip.tools.gen.smart(type)} Successfully Reported`,
-                            formattedResponse: "We've successfully recieved your report, and we'll review it as soon as possible. Thanks for making Looop a better place for everybody!",
+                            formattedResponse: "We've successfully recieved your report, and we'll review it as soon as possible. Thanks for making TomTube a better place for everybody!",
                             statusCode: 200
                         });
                     } else {
@@ -3968,7 +3968,7 @@ module.exports = function(io, s3) {
                 TEMP_SUSPENDED: {
                     response: "TEMP_SUSPENDED",
                     formattedTitle: "Temporarily Suspended",
-                    formattedDesc: "Your account has been temporarily suspended.\n\nIf you think this has been done in error, please contact hello@looop.app.",
+                    formattedDesc: "Your account has been temporarily suspended.\n\nIf you think this has been done in error, please contact hello@tomtube.com.",
                     statusCode: 401
                 },
                 ERR: {
@@ -4024,7 +4024,7 @@ module.exports = function(io, s3) {
                 NO_AUTH: {
                     response: "NO_AUTH",
                     formattedTitle: "Authentication Revoked",
-                    formattedResponse: "As you are not authenticated, we've automatically logged you out, so please log in again.\n\nStill facing issues? Email hello@looop.app and we'll help you out.",
+                    formattedResponse: "As you are not authenticated, we've automatically logged you out, so please log in again.\n\nStill facing issues? Email hello@tomtube.com and we'll help you out.",
                     statusCode: 401
                 },
                 ACCOUNT_ALREADY_EXISTS: {
@@ -4366,7 +4366,7 @@ module.exports = function(io, s3) {
                             gradient: flip.tools.gen.randomGradient(),
                             badges: [],
                             followers: [],
-                            following: ["gcVKSxFv2hk3o8V"],
+                            following: [],
                             blocked: []
                         },
                         session: {
