@@ -4366,7 +4366,7 @@ module.exports = function(io, s3) {
                             gradient: flip.tools.gen.randomGradient(),
                             badges: [],
                             followers: [],
-                            following: [],
+                            following: ["kUjAtTvBEOcYkqk"],
                             blocked: []
                         },
                         session: {
