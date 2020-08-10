@@ -1325,7 +1325,7 @@ module.exports = function(flip, s3) {
         res.send({
             response: "IN_DEV",
             formattedTitle: "Feature in Development",
-            formattedResponse: "This feature is in development. Contact support@flip.wtf for further details."
+            formattedResponse: "This feature is in development. Contact hello@tomtube.com for further details."
         })
     })
 
