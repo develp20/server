@@ -160,7 +160,7 @@ module.exports = function(io, s3) {
                                                 isChatEnabled: (hasChatCapabilities.includes(clientID)),
                                                 canUploadVideos: true,
                                                 doesRequireWatermarkOnExport: !(username == "william"),
-                                                timeLimit: 20.0,
+                                                timeLimit: 10.0,
                                                 server: {
                                                     BASE_URL: "https://nuyr.io",
                                                     BASE_API_URL: "https://api.tomtube.com/v4/",
